@@ -1,0 +1,17 @@
+{
+	"hud_lives_icon_slot75":  { "File": "interface.png", "Rect": "0,1,75,16", "Center": "0,0" },
+	"hud_bonus_icon_orange":  { "File": "interface.png", "Rect": "84,45,12,19", "Center": "0,0" },
+	"continue_icon_slot75":  { "File": "interface.png", "Rect": "32,15,20,28", "Center": "10,27" },
+	"monitor_icon_slot75":  { "File": "interface.png", "Rect": "0,1,16,16", "Center": "8,8" },
+	"dataSel_slot75":  { "File": "interface.png", "Rect": "0,20,30,40", "Center": "16,40" },
+	"dataSel_lifeContinue_slot75":  { "File": "interface.png", "Rect": "78,0,21,39", "Center": "0,0" },
+	"dataSel_life_slot75":  { "File": "interface.png", "Rect": "78,0,21,16", "Center": "0,0" },
+	"level_select_S3C_ExtraLife":  { "File": "interface.png", "Rect": "78,0,16,16", "Center": "0,0" },
+	"goal_extraLife":  { "File": "signpost.bmp", "Rect": "0,0,48,32", "Center": "24,16" },
+	"slot75_text":  { "File": "interface.png", "Rect": "0,66,126,16", "Center": "86,8" },
+	"dataSel_savePortrait_slot75":  { "File": "interface.png", "Rect": "0,82,80,56", "Center": "40,120" },
+	"dataSel_savePortrait_Superslot75":  { "File": "interface.png", "Rect": "80,82,80,56", "Center": "40,120" },
+	"extraLifeMicro":  { "File": "interface.png", "Rect": "32,48,14,12", "Center": "8,4" },
+	"extraLifePose":  { "File": "interface.png", "Rect": "160,0,77,96", "Center": "37,53" },
+	"titlecard_orangebar":  { "File": "TitleCard_IrisBar.png", "Rect": "0,48,64,176", "Center": "0,0" }
+}

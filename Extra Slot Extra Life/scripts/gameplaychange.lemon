@@ -1,0 +1,836 @@
+global u8 EndLocation
+
+//-------------------------------------------------------//
+// STARTING LOCATIONS                                    //
+//-------------------------------------------------------//
+//Start animation and location in the stages (part 2)
+// I don't need the "part1" script for this mod. Look into 3d2dGlitches, chaos the impostor
+// or ultimate mighty to find it
+//# address-hook(0x0067ee) end(0x0069b6)
+function void fn0067ee()
+{
+	//AFFECTS ALL CHARS AS IT IS THE FLAG FOR THE RENDER OF EXTRA LIFE TOO
+	extraLife.RENDERTAILS = false
+	extraLife.SPAWNINGIN = false
+	extraLife.CARRYBOX = false
+	
+	//DETECT MIGHTY, METAL OR SHADOW under this mode, allow if ICZ start or HPZ
+	//Leave control to their start locations
+	if(global.zone_act == 0x0500)||(global.zone_act == 0x1601)
+	{
+		u64 otherCharMods = stringformat("goal_mighty_UW", 0)
+		bool usebasecode = false
+		if (Renderer.hasCustomSprite(otherCharMods))
+			usebasecode = true
+		otherCharMods = stringformat("goal_metal_UW", 0)
+		if (Renderer.hasCustomSprite(otherCharMods))
+			usebasecode = true
+		otherCharMods = stringformat("goal_shadow_UW", 0)
+		if (Renderer.hasCustomSprite(otherCharMods))
+			usebasecode = true
+		if (usebasecode)
+		{
+			base.fn0067ee()
+			return
+		}
+	}
+	
+	
+	
+	u32[0xffffb094] = 0x006c2c
+	InitializeGameCharacters()
+	RestoreShield()
+	if (checkpoint.number != 0 || global.stage_type != 0)
+		return
+
+	A1 = 0xffffb000
+	A2 = 0xffffb04a
+	if (global.zone_act == 0x0000)
+	{
+		// Angel Island Zone
+		if (isSonicIntro())
+		{
+			// Trigger intro
+			u32[0xffffb172] = 0x067472
+			global.level_started = 0
+		}
+	#if STANDALONE
+		else if (isMainCharacter(CHARACTER_KNUCKLES) && Game.getSetting(SETTING_AIZ_INTRO_KNUCKLES) != 0 && !Game.isTimeAttack())
+		{
+			u32[0xffffb172] = 0x063446
+		}
+	#endif
+	}
+	else if (global.zone_act == 0x0100)
+	{
+		// Hydrocity Zone
+		objA1.state = char.state.FALLING_PANIC
+		if (global.characters == CHARS_KNUCKLES_ALONE)
+		{
+			u16[A1 + 0x20] = 0x2121
+			u8[A1 + 0x23] = 1
+			objA1.animation.timer = 0	// This is A0 instead of A1 in original, thanks to Clownacy (https://forums.sonicretro.org/index.php?showtopic=30778&view=findpost&p=893997)
+		}
+		objA1.flags2a |= char.flag.IN_AIR
+		if (global.characters == CHARS_TAILS_ALONE)
+		{
+			u8[A1 + 0x40] = 0x01
+		}
+		if (u32[A2] != 0)
+		{
+			u8[A2 + 0x20] = char.state.FALLING_PANIC
+			u8[A2 + 0x2a] |= char.flag.IN_AIR
+			u8[A2 + 0x40] = 0x01
+		}
+	}
+	else if (global.zone_act == 0x0200)
+	{
+		// Marble Garden Zone
+		objA1.state = char.state.FALLING_PANIC
+		objA1.flags2a |= char.flag.IN_AIR
+		if (u32[A2] != 0)
+		{
+			u8[A2 + 0x20] = char.state.FALLING_PANIC
+			u8[A2 + 0x2a] |= char.flag.IN_AIR
+		}
+	}
+	else if (global.zone_act == 0x0300)
+	{	
+		//D.A.Garden is the only thing to patch for Extra Life
+		u64 key = stringformat("obj_dark_sand_pit_overlay_shallow184", 0)
+		if(Renderer.hasCustomSprite(key))
+		{ //DA GARDEN	
+			if (level.start_location == 1 && !isMainCharacter(CHARACTER_TAILS))
+			{
+				extraLife.RENDERTAILS = true
+				u32[0xffffb04a] = 0x01365c		// load Tails into the player 2 position of the object status table
+				u16[0xffffb05a] = u16[0xffffb010]		// copy x position
+				u16[0xffffb05e] = u16[0xffffb014]		// copy y position
+				tails.ai_routine = 0x00	// originally 0
+			}
+			else if (level.start_location == 1 && isMainCharacter(CHARACTER_TAILS))
+			{
+				extraLife.RENDERTAILS = true
+				tails.ai_routine = 0x20
+			}
+			else // if (isMainCharacter(CHARACTER_KNUCKLES))
+			{
+				u32[0xffffb172] = 0x044a0c // load Obj_LevelIntro_PlayerRun
+			}
+		}
+		else
+		{
+			// Carnival Night Zone
+			bool spawnAITails = (global.characters == CHARS_SONIC_ALONE)	// Excluding Sonic & Tails
+			if (isMainCharacter(CHARACTER_SONIC))
+			{
+				extraLife.RENDERTAILS = true
+			}
+		#if STANDALONE
+			if (level.start_location == 1 && isMainCharacter(CHARACTER_KNUCKLES))
+			{
+				extraLife.RENDERTAILS = true
+				spawnAITails = true
+			}
+		#endif
+			if (spawnAITails)
+			{			
+				u32[0xffffb04a] = 0x01365c
+				u16[0xffffb05a] = u16[0xffffb010]
+				u16[0xffffb05e] = u16[0xffffb014]
+				tails.ai_routine = 0
+			}
+			else if (isMainCharacter(CHARACTER_TAILS))
+			{
+				//FALL IN AS MONITOR
+				//tails.ai_routine = 0x20
+				extraLife.STARTASBOX = true
+			}
+			else if (isMainCharacter(CHARACTER_KNUCKLES))
+			{
+				u32[0xffffb172] = 0x044a0c
+			}
+		}
+	}
+	else if (global.zone_act == 0x0500)
+	{
+		// IceCap Zone
+		if (isMainCharacter(CHARACTER_SONIC))
+		{
+			u32[0xffffb172] = 0x0396e4
+		}
+		else if (isMainCharacter(CHARACTER_TAILS))
+		{
+			u32[0xffffb172] = 0x039b66
+		}
+	#if STANDALONE
+		else if (isMainCharacter(CHARACTER_KNUCKLES))
+		{
+			if (level.start_location == 1)
+			{
+				// Use Tails' start
+				u32[0xffffb172] = 0x039b66
+			}
+		}
+	#endif
+	}
+	else if (global.zone_act == 0x0600)
+	{
+		// Launch Base Zone
+		u32[0xffffb172] = 0x039a40
+	}
+	else if (global.zone_act == 0x0700)
+	{
+		// Mushroom Hill Zone
+		if (isMainCharacter(CHARACTER_KNUCKLES))
+		{
+			objA1.state = char.state.FALLING_PANIC
+			objA1.flags2a |= char.flag.IN_AIR
+		}
+		else if (global.lock_on_state == 0)
+		{
+			// Add Tails
+			if (isMainCharacter(CHARACTER_SONIC))
+			{
+				extraLife.RENDERTAILS = true
+			}
+			if (global.characters == CHARS_SONIC_ALONE)
+			{				
+				u32[0xffffb04a] = 0x01365c
+				u16[0xffffb05a] = u16[0xffffb010]
+				u16[0xffffb05e] = u16[0xffffb014]
+				tails.ai_routine = 0
+			}
+			else if (isMainCharacter(CHARACTER_TAILS))
+			{
+				//FALL IN AS MONITOR
+				//tails.ai_routine = 0x20
+				extraLife.STARTASBOX = true
+			}
+		}
+	}
+	else if (global.zone_act == 0x0800)
+	{
+		// Sandopolis Zone
+		u32[0xffffb172] = 0x041fee
+		objA1.state = char.state.ROLLING
+		objA1.flags2a |= char.flag.IN_AIR
+		if (u32[A2] != 0)
+		{
+			u8[A2 + 0x20] = char.state.ROLLING
+			u8[A2 + 0x2a] |= char.flag.IN_AIR
+		}
+	}
+	else if (global.zone_act == 0x0900)
+	{
+		// Lava Reef Zone
+		if (global.characters != CHARS_KNUCKLES_ALONE)
+		{
+			objA1.state = char.state.FALLING_PANIC
+			objA1.flags2a |= char.flag.IN_AIR
+			if (u32[A2] != 0)
+			{
+				u8[A2 + 0x20] = char.state.FALLING_PANIC
+				u8[A2 + 0x2a] |= char.flag.IN_AIR
+			}
+		}
+		else
+		{
+			u32[0xffffb172] = 0x044a0c
+		}
+	}
+	else if (global.zone_act == 0x0b00)
+	{
+		// Death Egg Zone
+		u32[0xffffb172] = 0x044a0c
+	}
+	else if (global.zone_act == 0x1600)
+	{
+		// Lava Reef boss act
+		objA1.state = char.state.FALLING_PANIC
+		objA1.flags2a |= char.flag.IN_AIR
+		if (u32[A2] != 0)
+		{
+			u8[A2 + 0x20] = char.state.FALLING_PANIC
+			u8[A2 + 0x2a] |= char.flag.IN_AIR
+		}
+	}
+	else if (global.zone_act == 0x1601)
+	{
+		// Hidden Palace Zone
+		u32[0xffffb172] = 0x044a0c
+	}
+}
+
+//TAILS CARRY IN THE PLAYER INTRO CHANGES:
+//HAVE TAILS GO AWAY TO HAVE EXTRA LIFE POP-IN LATER
+//# address-hook(0x013ffa) end(0x014086)
+function void fn013ffa()
+{
+	tails.control_counter = 0
+	control.tails = (level.framecounter.low & 0x1f) ? 0 : 0x0808
+
+	A2 = 0xfffff73e
+	A1 = 0xffffb000
+	if ((u8[A1 + 0x2a] & char.flag.IN_AIR) == 0)
+	{
+		tails.ai_routine = 0x06
+		objA0.flags2e = 0
+		objA0.state = 0
+		objA0.velocity.x = 0
+		objA0.velocity.y = 0
+		u16[A0 + 0x1c] = 0
+		objA0.flags2a = char.flag.IN_AIR
+		objA0.value32 = 0
+		objA0.sprite_attributes = (objA0.sprite_attributes & 0x7fff) | (u8[A1 + 0x0a] & 0x8000)
+
+		char.layer_flags1 = u8[A1 + 0x46]
+		char.layer_flags2 = u8[A1 + 0x47]
+		//if (getNumPlayers() < 2) Always have tails go away
+		//{
+			tails.ai_routine = 0x10
+		//}
+	}
+
+	D0.u16 = control.pad1
+	Tails.UpdateCarrySonic()
+}
+
+//WHEN TAILS LEFT RESPAWN AS EXTRA LIFE
+//# address-hook(0x01408a) end(0x0140c4)
+function void fn01408a()
+{
+	tails.control_counter = 0
+	tails.flight_countdown = 0xf0
+	control.tails = (level.framecounter.low & 0x0f) ? 0 : 0x7878
+
+	if (!(objA0.render_flags & render_flag.VISIBLE))
+	{
+		extraLife.RENDERTAILS = false
+		if (getNumPlayers() < 2)
+		{
+			objA0.update_address = 0
+			objA0.position.x.u16 = 0
+			objA0.position.y.u16 = 0
+			tails.ai_routine = 0x0a
+		}
+		else
+		{
+			tails.ai_routine = 0x04
+		}		
+	}
+}
+
+//-------------------------------------------------------//
+// Marble Garden  Zone                                   //
+//-------------------------------------------------------//
+
+// MGZ 2 Boss
+// Extra Life has to be tails and carry his box in his game
+// But he has to be entirely replaced by tails for the boss for Sonic and Knuckles
+
+//# address-hook(0x06c598) end(0x06c5c0)
+function void fn06c598()
+{
+	if (isMainCharacter(CHARACTER_TAILS))
+	{
+		extraLife.CARRYBOX = true
+	}
+	extraLife.RENDERTAILS = true
+	
+	objA0.base_state = 0x1a
+	u8[A0 + 0x46] = 0
+	objA0.render_flags |= 0x01
+	objA0.position.x.u16 = 0x3e80
+	objA0.position.y.u16 = 0x0700
+	objA0.velocity.x = -0x80
+	objA0.value3a = 0x06
+	fn0685e2()
+}
+
+
+//-------------------------------------------------------//
+// Carnival Night Zone                                   //
+//-------------------------------------------------------//
+//Act 1 has to start with tails, AND have tails fly away for Sonic
+//Then we spawn extraLife
+
+
+//-------------------------------------------------------//
+// Mushroom Hill Zone                                   //
+//-------------------------------------------------------//
+
+//Act 1 has to start with tails, AND have tails fly away for Sonic
+//Then we spawn extraLife
+
+//I need to fade extra life out of existance when player 2
+//# address-hook(0x07646e) end(0x076490)
+function void fn07646e()
+{
+	objA0.update_address = 0x076492
+	A1 = 0xffffb04a
+	u8[A1 + 0x2e] = 0x81
+	u8[A1 + 0x20] = 0x20 // <--- the game forces a fly action, Extra Life should "poof" out
+	//call the Monitor Poof Effect
+	extraLife.Monitor = 1
+	u8[A1 + 0x04] &= ~render_flag.FLIP_X
+	u8[A1 + 0x2a] &= ~0x01
+}
+
+
+//-------------------------------------------------------//
+// Death Egg Zone                                        //
+//-------------------------------------------------------//
+
+//ACT1 - No change
+//ACT2 - No change
+//FINAL BOSS - Go to doomsday with ExtraLife (or to the bad end)
+function bool DEZFinalBoss3.canPlayerEnterDoomsday()
+{
+	//ExtraLife CAN enter doomsday! No questions!
+	if (XtraChar == 75)
+	{		
+		return base.DEZFinalBoss3.canPlayerEnterDoomsday()
+	}
+	return ( global.chaos_emeralds == 7)
+}
+
+//-------------------------------------------------------//
+// Credits                                               //
+//-------------------------------------------------------//
+//I need a few adjustments here...
+// Sonic grabs Extra Life (no change)
+// reposition a few pixels up on the tornado
+// possibly use sonic's model for the small frames on the tornado, because I'm lazy
+// Final Pose
+
+//# address-hook(0x05da74) end(0x05db28)
+function void fn05da74()
+{
+	if (!isMainCharacter(CHARACTER_TAILS))
+	{
+		base.fn05da74()
+		return
+	}
+	
+	A1 = 0xffff0000 + u16[A0 + 0x44]
+	D0.u16 = objA1.position.x.u16 + 0x20
+	if (D0.s16 <= s16(objA0.position.x.u16))
+	{
+		D0 = u32[0xffffee9c] + 0x8000
+		u32[0xffffee9c] = D0
+		return
+	}
+
+	objA0.base_state = 0x08
+	u8[0xfffffab8] |= 0x01
+	objA0.countdown_value = 0x20
+
+	D0 = -0x20
+	u8[A1 + 0x42] = D0.u8
+	D1.u16 = objA1.position.x.u16
+	D1.u16 -= D0.u16
+	objA0.position.x.u16 = D1.u16
+
+	D0 = 0x2b
+	//if (global.characters == CHARS_TAILS_ALONE)
+	//{
+	//	D0.u8 -= 4
+	//	u8[0xffffcc0e] &= ~0x04
+	//}
+	u8[A1 + 0x43] = D0.u8
+	D1.u16 = objA1.position.y.u16
+	D0.s16 = -D0.s16
+	D1.u16 += D0.u16
+	objA0.position.y.u16 = D1.u16
+	u16[A0 + 0x3a] = D1.u16
+
+	A1 = 0xffffb000
+	if (outro.ending_type > 0)
+	{
+		super.active = 0
+		super.active.tails = 0
+		super.palettefx.state = 2
+		super.palettefx.frame = 30
+		//always Tails code
+		u32[A1 + 0x0c] = 0x148eb8
+	}
+
+	u8[A1 + 0x20] = 0x05
+	u8[A1 + 0x2e] = 0x83
+	fn05fd88()
+	fn05db2c()
+}
+
+// Small characters on Tornado
+
+//# address-hook(0x05ecb4) end(0x05ed0c)
+function void fn05ecb4()
+{
+	if (!isMainCharacter(CHARACTER_TAILS))
+	{
+		base.fn05ecb4()
+		return
+	}
+	setupObjectAttributesFull(0x0600e6)
+
+	A1 = 0xffff0000 + u16[A0 + 0x46]
+	u8[A0 + 0x0a] = (u8[A0 + 0x0a] & ~0x80) | (u8[A1 + 0x0a] & 0x80)
+	if ((u8[A1 + 0x04] & 0x04) == 0)
+	{
+		objA0.render_flags &= ~0x04
+	}
+
+	objA0.update_address = 0x05ed18 //<----- renderhook for standing and driver!
+	u16 offset = CHARS_TAILS_ALONE //global.characters <--this will draw tails as the driver
+	offset *= 2
+	if (objA0.subtype2c != 0) //Driver
+	{
+		offset = CHARS_SONIC_ALONE
+		offset *= 2
+		++offset
+	}
+	objA0.animation.sprite = u8[0x05ed0e + offset]
+
+#if STANDALONE
+	//if (global.characters == CHARS_KNUCKLES_ALONE)
+	//{
+	//	// Set correct colors for Knuckles
+	//	// TODO: This is not using custom palettes, so there's no palette effect for Hyper Knuckles
+	//	u16[0xfffffc04] = 0x064e
+	//	u16[0xfffffc06] = 0x020c
+	//	u16[0xfffffc08] = 0x0206
+	//}
+#endif
+}
+
+//# address-hook(0x05da74) end(0x05db28)
+function void fn05da74()
+{
+	if (!isMainCharacter(CHARACTER_TAILS))
+	{
+		base.fn05da74()
+		return
+	}
+	A1 = 0xffff0000 + u16[A0 + 0x44]
+	D0.u16 = objA1.position.x.u16 + 0x20
+	if (D0.s16 <= s16(objA0.position.x.u16))
+	{
+		D0 = u32[0xffffee9c] + 0x8000
+		u32[0xffffee9c] = D0
+		return
+	}
+
+	objA0.base_state = 0x08
+	u8[0xfffffab8] |= 0x01
+	objA0.countdown_value = 0x20
+
+	D0 = -0x20
+	u8[A1 + 0x42] = D0.u8
+	D1.u16 = objA1.position.x.u16
+	D1.u16 -= D0.u16
+	objA0.position.x.u16 = D1.u16
+
+	D0 = 0x2b
+	//if (global.characters == CHARS_TAILS_ALONE)
+	//{
+	//	D0.u8 -= 4
+	//	u8[0xffffcc0e] &= ~0x04
+	//}
+	u8[A1 + 0x43] = D0.u8
+	D1.u16 = objA1.position.y.u16
+	D0.s16 = -D0.s16
+	D1.u16 += D0.u16
+	objA0.position.y.u16 = D1.u16
+	u16[A0 + 0x3a] = D1.u16
+
+	A1 = 0xffffb000
+	if (outro.ending_type > 0)
+	{
+		super.active = 0
+		super.active.tails = 0
+		super.palettefx.state = 2
+		super.palettefx.frame = 30
+
+		//u32[A1 + 0x0c] = (global.characters != CHARS_TAILS_ALONE) ? 0x146620 : 0x148eb8
+		u32[A1 + 0x0c] = 0x146620
+	}
+
+	u8[A1 + 0x20] = 0x05
+	u8[A1 + 0x2e] = 0x83
+	fn05fd88()
+	fn05db2c()
+}
+
+//# address-hook(0x05ea74) end(0x05ead6)
+function void fn05ea74()
+{
+	if (!isMainCharacter(CHARACTER_TAILS))
+	{
+		base.fn05ea74()
+		return
+	}
+	setupObjectAttributesFull(0x0600ce)
+
+	if (objA0.flags38 & 0x04)
+	{
+		objA0.flags38 &= ~0x04
+		objA0.render_flags &= ~render_flag.WORLD
+	}
+
+	if (objA0.subtype2c != 0)
+	{
+		objA0.base_state = 0x04
+		objA0.position.x.u16 = 0x40
+		objA0.position.y.u16 = 0x010b
+		u16[A0 + 0x3a] = 0x010b
+		if (outro.ending_type >= 0)
+		{
+			spawnChildObjects(0x0601e8)
+		}
+	}
+	
+	//if (global.characters == CHARS_TAILS_ALONE)
+	//{
+	//	u8[A0 + 0x43] -= 4
+	//}
+
+	objA0.render_flags |= render_flag.COMPOUND
+	u16[A0 + 0x16] = 0x02
+
+	spawnChildObjects(0x0601c2)
+}
+
+
+
+// Super transformation, in good and best ending
+
+//# address-hook(0x05e412) end(0x05e456)
+function void fn05e412()
+{
+	if (!isMainCharacter(CHARACTER_TAILS))
+	{
+		base.fn05e412()
+		return
+	}
+	A1 = 0xffffb000
+	if (u8[A1 + 0x2e] == 0)
+	{
+		//if (global.characters == CHARS_TAILS_ALONE)
+		{
+			if (allocDynamicObjectStd())
+			{
+				u32[A1] = 0x05fcdc
+			}
+			objA0.render_flags |= 0x01
+			fn05e3c0()
+		}
+		//else
+		//{
+		//	objA0.base_state = 0x0c
+		//	u8[A1 + 0x2e] = 0x81
+		//	u8[A1 + 0x20] = 0
+		//	u16[A1 + 0x18] = 0x0800
+		//	u16[A1 + 0x1c] = 0x0800
+		//}
+	}
+}
+
+//# address-hook(0x05e4e2) end(0x05e4fe)
+function void fn05e4e2()
+{
+	if (!isMainCharacter(CHARACTER_TAILS))
+	{
+		base.fn05e4e2()
+		return
+	}
+	//if (global.characters == CHARS_TAILS_ALONE)
+	//{
+	//	super.palettefx.timer = 0x7f
+	//}
+
+	if ((u8[0xfffffab8] & 0x08) == 0)
+	{
+		DrawObject()
+	}
+	else
+	{
+		Object.TriggerUnloading()
+	}
+}
+
+// Super transformation
+
+//# address-hook(0x08648c) end(0x08653e)
+function void fn08648c()
+{
+	if (!isMainCharacter(CHARACTER_TAILS))
+	{
+		base.fn08648c()
+		return
+	}
+	ring_counter += 50
+	super.palettefx.state = 1
+	super.palettefx.timer = 0x0f
+	super.active = 1
+	super.ring_dec.frames = 60
+	global.move.speedcap = 0x800
+	global.move.acceleration = 0x18
+	global.move.deceleration = 0xc0
+	u8[0xffffb020] = 0x1f
+
+	if (global.characters == CHARS_TAILS_ALONE)
+	{
+		super.active = 0
+		super.active.tails = 0x01
+		u8[0xffffb020] = 0x29
+		u16[0xfffffec0] = 0x800
+		u16[0xfffffec2] = 0x18
+		u16[0xfffffec4] = 0xc0
+		u32[0xffffcd7c] = 0x01a170
+	}
+	else if (global.characters != CHARS_TAILS_ALONE) //!= instead of <
+	{
+		u32[0xffffb00c] = 0x146816
+		super.active = 0xff
+	#if STANDALONE
+		super.active = (global.super_emeralds == 7) ? 0xff : 0x01
+	#endif
+		global.move.speedcap = 0xa00
+		global.move.acceleration = 0x30
+		global.move.deceleration = 0x100
+		u32[0xffffcd7c] = 0x019348
+	}
+	else
+	{
+		u32[0xffffcbc0] = 0x01a494
+	}
+
+	u8[0xffffb02b] |= 0x02
+	u8[0xffffb02e] = 0x81
+	u8[0xffffb035] = 0
+}
+
+//there is a character check here...let's force tails
+//# address-hook(0x05fefe) end(0x05ff1a)
+function void fn05fefe()
+{
+	if (!isMainCharacter(CHARACTER_TAILS))
+	{
+		base.fn05fefe()
+		return
+	}
+	//A1 += (global.characters & 0x03) * 2
+	A1 += (CHARS_TAILS_ALONE & 0x03) * 2
+	objA0.position.x.u16 += s8[(A1+=1)-1]
+	objA0.position.y.u16 += s8[(A1+=1)-1]
+}
+
+//Here too
+//# address-hook(0x05ef68) end(0x05efb4)
+function void fn05ef68()
+{
+	if (!isMainCharacter(CHARACTER_TAILS))
+	{
+		base.fn05ef68()
+		return
+	}
+	objA0.update_address = 0x05f144
+	objA0.countdown_value = 0x01ff
+	super.palettefx.state = 0
+
+	//D0.u16 = (global.characters & 0x03) - 2
+	D0.u16 = (CHARS_TAILS_ALONE & 0x03) - 2
+	D1 = 0
+	if (D0.s16 >= 0)
+	{
+		D1.u16 += (D0.u16 == 0) ? 0x30 : 0x60
+	}
+	if (global.lock_on_state == 0)
+	{
+		D1.u16 += 0x18
+	}
+	if (outro.ending_type >= 0)
+	{
+		D1.u16 += (outro.ending_type == 0) ? 0x08 : 0x10
+	}
+
+	A1 = 0x05efb6 + D1.s16
+	A2 = u32[(A1+=4)-4]
+	objA0.countdown_callback = u32[(A1+=4)-4]
+	call A2
+}
+
+function void TriggerNextZone()
+{
+  
+	if (XtraChar != 75)
+	{
+		base.TriggerNextZone()
+		return
+	}
+
+#if STANDALONE
+	Standalone.onLevelFinished()
+	D0.u16 = Game.onTriggerNextZone(D0.u16)
+
+	// Decide on the next zone's start location -- either the default or an alternative one
+	//  - 0 is the default
+	//  - 1 is Sonic's and Tails' path
+	//  - 2 is Knuckles's path
+	level.start_location = 0
+
+	//handle hcz
+	if (D0.u16 == 0x0100)
+	{
+		// AIZ -> HCZ
+		//determines the animation according to how the player ended AIZ
+		level.start_location = EndLocation
+		EndLocation = 0
+	}
+	// Trigger the fade out and loading of next zone
+	global.zone_act = D0.u16
+	global.zone_act.apparent = D0.u16
+	level.restart = 1
+	checkpoint.number = 0
+	global.stage_type = 0
+#endif
+}
+
+function void fn069526()
+{
+	if (global.zone_act != 0x0001 || XtraChar != 75)
+    {
+        base.fn069526()
+        return
+    }
+
+	A1 = 0xffffb000
+	D0.u16 = u16[0xfffffa84] + 0x01f8
+	if (D0.u16 > objA1.position.x.u16)
+	{
+		// Move right
+		control.player1 = 0x0808
+		return
+	}
+
+	StopObjectA1()
+
+	if (camera.position.y.u16 < 0x200)//(!isMainCharacter(CHARACTER_KNUCKLES))
+	{
+		objA0.update_address = 0x069588
+		if (allocDynamicObjectStd())
+		{
+			objA1.update_address = 0x061d4c
+			objA1.subtype2c = 0x04
+		}
+		EndLocation = 1
+		addPatternLoadingCue(0x083d6c)
+	}
+	else
+	{
+		EndLocation = 2
+		objA0.update_address = 0x0695ce
+		control.player1 = 0x2020	
+	}
+}

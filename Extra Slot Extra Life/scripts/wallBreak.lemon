@@ -1,0 +1,227 @@
+// All the various rocks in the game
+// For this mod, Extra Life must not accidentally break rocks with the fire shield
+// his attack is not sonic's fireball, even if it is a dash.
+// -------------
+// ROCK BREAKING  --- ExtraLife has more limits! No dash through rocks, unless super!
+//					DISCOVERY: the include order in the main.lemon somehow AFFECTS this block
+//					of functions, so it HAS to be AFTER the characters to be read
+//--------------
+//# address-hook(0x01fd08) end(0x01ff1a)
+function void fn01fd08()
+{
+	//I'll trigger this only when extraLife is player 1.
+	A1 = 0xffffb000
+	if (global.xtrachar != 75)
+	{
+		base.fn01fd08()
+		return
+	}
+
+	u16[A0 + 0x30] = u16[0xffffb018]
+	u16[A0 + 0x36] = u16[0xffffb062]
+
+	D1 = objA0.box_size.x + 11
+	D2 = objA0.box_size.y
+	D3.u16 = D2.u16 + 1
+	D4.u16 = objA0.position.x.u16
+	fn01dc56()
+
+	D6 = (D6 << 16) + (D6 >> 16)
+	if (D6.u16 & 0x03)
+	{
+		bool canBreakWall = false
+
+		A1 = 0xffffb000
+		D1.u16 = u16[A0 + 0x30]
+		if (D6.u16 & 0x01)
+		{
+			if (u8[A1 + 0x38] == CHARACTER_KNUCKLES || XtraChar == 75 && (ExtraLife.AirDash == true))
+			{
+				// Knuckles can break all walls
+				canBreakWall = true
+			}
+			else
+			{
+				if ((objA0.subtype2c & 0x80) == 0)	// Special Knuckles-only wall?
+				{
+					if (super.active)
+					{
+						// Super form breaks walls even when going slow
+						canBreakWall = true
+					}
+					else if ((objA0.flags2a & 0x20))// || (u8[A1 + 0x2b] & char.bonus.SHIELD_FIRE))
+					{
+						// Normal Sonic and Tails need to quickly roll into a wall to break it (this includes the fire shield attack)
+						canBreakWall = (objA1.state == char.state.ROLLING && abs(D1.s16) >= 0x480)
+					}
+				}
+			}
+
+			if (canBreakWall)
+			{
+				objA0.flags2a &= ~0x20
+				Rocks.BreakWall()
+
+				if (objA0.flags2a & 0x40)
+				{
+					// Check for second character
+					A1 = 0xffffb04a
+					if (u8[A1 + 0x38] == CHARACTER_KNUCKLES || objA1.state == char.state.ROLLING)
+					{
+						objA1.velocity.x = u16[A0 + 0x36]
+						u16[A1 + 0x1c] = objA1.velocity.x
+						objA0.flags2a &= ~0x40
+						objA1.flags2a &= ~char.flag.PUSHING
+					}
+				}
+			}
+		}
+
+		if (!canBreakWall)
+		{
+			// Give second character a try
+			A1 = 0xffffb04a
+			D1.u16 = u16[A0 + 0x36]
+
+			if (objA0.flags2a & 0x40)
+			{
+				if (u8[A1 + 0x38] == CHARACTER_KNUCKLES || XtraChar == 75 && (ExtraLife.AirDash == true))
+				{
+					// Knuckles can break all walls
+					canBreakWall = true
+				}
+				else
+				{
+					if ((objA0.subtype2c & 0x80) == 0)	// Special Knuckles-only wall?
+					{
+						// Normal Sonic and Tails need to quickly roll into a wall to break it (this includes the fire shield attack)
+						canBreakWall = (objA1.state == char.state.ROLLING && abs(D1.s16) >= 0x480)
+					}
+				}
+			}
+
+			if (canBreakWall)
+			{
+				objA0.flags2a &= ~0x40
+				Rocks.BreakWall()
+				return
+			}
+		}
+	}
+
+	if (competition_mode.active == 0)
+	{
+		if (checkForUnloadObjectAtPosition(objA0.countdown_value))
+			return
+	}
+	DrawObject()
+}
+
+
+//-------------------------------------------------------------------------
+//WALL BREAK --- THIS IS ALL THE SMALL WALLS, NOT THE ROCKS!
+//-------------------------------------------------------------------------
+
+//# address-hook(0x021568) end(0x021690)
+function void fn021568()
+{
+	//I'll trigger this only when chaos is player 1.
+	A1 = 0xffffb000
+	if (u8[A1 + 0x38] != CHARACTER_TAILS)
+	{
+		base.fn021568()
+		return
+	}
+	
+	u16[A0 + 0x30] = u16[0xffffb018]
+	objA0.value32 = u16[0xffffb062]
+
+	D1 = objA0.box_size.x + 11
+	D2 = objA0.box_size.y
+	D3.u16 = D2.u16 + 1
+	D4.u16 = objA0.position.x.u16
+	fn01dc56()
+
+	if (u8[A0 + 0x2c] & 0x80)
+	{
+		if (level.trigger00 == 0)
+		{
+			DrawOrUnloadObject()
+		}
+		else
+		{
+			UnloadObject()
+		}
+		return
+	}
+
+	D6 = (D6 << 16) + (D6 >> 16)
+	D6.u16 &= 0x03
+	if (D6.u16 == 0)
+	{
+		DrawOrUnloadObject()
+		return
+	}
+
+	A1 = 0xffffb000
+	D1.u16 = u16[A0 + 0x30]
+	if (D6.u16 & 0x01)
+	if (D6.u16 & 0x01)
+	{
+		bool canBreakWall = false
+		if (super.active || u8[A1 + 0x38] == CHARACTER_KNUCKLES || XtraChar == 75 && (ExtraLife.AirDash == true))
+		{
+			// Super/Hyper forms can break walls, and Knuckles can
+			canBreakWall = true
+		}
+		else
+		{
+			// Does this wall allow for rolling into the wall? No fire shield effect for ExtraLife
+			if ((objA0.flags2a & 0x20) )//|| (u8[A1 + 0x2b] & char.bonus.SHIELD_FIRE))
+			{
+				canBreakWall = (objA1.state == char.state.ROLLING && abs(D1.s16) >= 0x0480)
+			}
+		}
+
+		if (canBreakWall)
+		{
+			objA0.flags2a &= ~0x20
+			fn02165a()
+
+			A1 = 0xffffb04a
+			if ((objA0.flags2a & 0x40) && objA1.state == char.state.ROLLING)
+			{
+				objA0.flags2a &= ~0x40
+				objA1.velocity.x = objA0.value32
+				u16[A1 + 0x1c] = objA1.velocity.x
+				objA1.flags2a &= ~char.flag.PUSHING
+			}
+
+			DrawOrUnloadObject()
+			return
+		}
+	}
+
+	A1 = 0xffffb04a
+	D1.u16 = objA0.value32
+	if ((objA0.flags2a & 0x40) && objA1.state == char.state.ROLLING && abs(D1.s16) >= 0x0480)
+	{
+		objA0.flags2a &= ~0x40
+		fn02165a()
+	}
+#if STANDALONE
+	else if (global.zone == 0x02)
+	{
+		// In MGZ, make all normal breakable walls also breakable by spinning top
+		D6 = (D6 << 16) + (D6 >> 16)
+		fn021758()
+	}
+#endif
+	else
+	{
+		DrawOrUnloadObject()
+	}
+}
+//---------------------------------------
+// WALL BREAK -- END
+//---------------------------------------

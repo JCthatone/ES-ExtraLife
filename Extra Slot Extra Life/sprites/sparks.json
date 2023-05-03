@@ -1,0 +1,16 @@
+{
+	"spark_0x00":  { "File": "sparks.png", "Rect": "5,6,1,1", "Center": "0,0" },
+	"spark_0x01":  { "File": "sparks.png", "Rect": "10,6,1,1", "Center": "0,0" },
+	"spark_0x02":  { "File": "sparks.png", "Rect": "15,5,3,3", "Center": "1,1" },
+	"spark_0x03":  { "File": "sparks.png", "Rect": "21,4,5,5", "Center": "2,2" },
+	"spark_0x04":  { "File": "sparks.png", "Rect": "1,17,7,7", "Center": "3,3" },
+	"spark_0x05":  { "File": "sparks.png", "Rect": "9,16,9,9", "Center": "4,4" },
+	"spark_0x06":  { "File": "sparks.png", "Rect": "20,13,15,15", "Center": "7,7" },
+	"spark_0x05":  { "File": "sparks.png", "Rect": "36,0,31,31", "Center": "15,15" },
+	"spark_0x08":  { "File": "sparks.png", "Rect": "20,13,15,15", "Center": "7,7" },
+	"spark_0x09":  { "File": "sparks.png", "Rect": "9,16,9,9", "Center": "4,4" },
+	"spark_0x0a":  { "File": "sparks.png", "Rect": "1,17,7,7", "Center": "3,3" },
+	"spark_0x0b":  { "File": "sparks.png", "Rect": "21,4,5,5", "Center": "2,2" },
+	"spark_0x0c":  { "File": "sparks.png", "Rect": "15,5,3,3", "Center": "1,1" },
+	"spark_0x0d":  { "File": "sparks.png", "Rect": "10,6,1,1", "Center": "0,0" }
+}
