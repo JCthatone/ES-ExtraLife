@@ -3,10 +3,22 @@ global u8 FBZSkip
 
 function string getExtraCharacterPaletteKey(u8 xtrachar)
 {
-    if (xtrachar == 75)
+    if (global.xtrachar == 75)
         return stringformat("ExtraLifePal_0%d", ExtraLifePalette)
     
     return base.getExtraCharacterPaletteKey(xtrachar)
+}
+
+function string getCharacterBluespherePaletteKey(u8 character)
+{
+    // Special handling for active extra character
+    if (global.xtrachar == 75)
+    {
+        return stringformat("bluesphere_palette_extraLife_0%d", ExtraLifePalette)
+    }
+    
+    // Return the base function
+    return base.getCharacterBluespherePaletteKey(character)
 }
 
 function u32 Game.getSetting(u32 settingId)

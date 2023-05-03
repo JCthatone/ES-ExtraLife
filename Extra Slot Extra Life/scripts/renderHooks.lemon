@@ -63,46 +63,6 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 		}
 	}
 	
-	//BLUESPHERES
-	// Characters in special stage, do something only for extra life though, the rest should fall on the normal render (or other mods)
-	if (objA0.update_address == 0x00903e || objA0.update_address == 0x00927a)
-	{
-		u8 character = (objA0.update_address == 0x00927a) ? getSecondCharacter() : getMainCharacter()
-		//u8 atex = (character == CHARACTER_TAILS) ? 0x10 : 0x00
-		if(character == CHARACTER_TAILS)
-		{
-			u8 atex = 0x10
-			//sprite
-			u64 key = stringformat("bluesphere_slot75_0x%02x", objA0.animation.sprite)
-			if (Renderer.hasCustomSprite(key))
-			{
-				// Check which custom palette
-				u64 paletteKey = "bluesphere_palette_extraLife"
-				if (System.hasExternalPaletteData(paletteKey, 0))
-				{
-					atex = 0x40 + character * 0x20
-				}
-			}
-			//else
-			//{
-			//	if (character == CHARACTER_SONIC)
-			//		key = Renderer.setupCustomCharacterSprite(0x0aaa7c, 0x0abe14, objA0.mapping_offset, objA0.animation.sprite, 0x00)
-			//	else if (character == CHARACTER_TAILS)
-			//		key = Renderer.setupCustomCharacterSprite(0x28f95a, 0x2908d2, objA0.mapping_offset, objA0.animation.sprite, 0x10)
-			//	else
-			//		key = Renderer.setupCustomCharacterSprite(0x0abf22, 0x0ad31a, objA0.mapping_offset, objA0.animation.sprite, 0x00)
-			//}
-			Renderer.drawCustomSprite(key, px, py, atex, prioFlag ? SPRITE_FLAG_PRIO : 0, renderQueue)
-			return true
-		}
-	}
-
-	// Tails' tails object in special stage should not be rendered
-	//if (objA0.update_address == 0x009488)
-	//{
-	//	return true
-	//}
-	
 //ENDING
 
 	if (XtraChar == 75)
