@@ -51,7 +51,7 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 	if (gameMode == 0x48 || gameMode == 0x0c)	// Blue Spheres results + fade to main game afterwards
 	{
 		// Blue Spheres results texts
-		if (objA0.update_address == 0x02ea50)
+		if (objA0.update_address == 0x02ea50 && global.xtrachar == 75)
 		{
 			bool isSKStage = (global.lock_on_state == 0 && global.sk_bluespheres)
 			
