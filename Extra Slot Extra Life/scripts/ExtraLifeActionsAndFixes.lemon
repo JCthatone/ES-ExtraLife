@@ -122,6 +122,7 @@ function void ExtraLifePressedJumpInMidAir()
 			ExtraLife.MidairTimer = 0
 			ExtraLife.AirDash = false
 			char.state = char.state.ROLLING
+			Audio.playAudio(0x51, AudioContext.CONTEXT_SOUND)
 		}
 		return
 	}
