@@ -12,11 +12,10 @@ function string getExtraCharacterPaletteKey(u8 xtrachar)
 function string getCharacterBluespherePaletteKey(u8 character)
 {
     // Special handling for active extra character
-    if (global.xtrachar == 75)
+    if (global.xtrachar == 75 && char.character == CHARS_TAILS_ALONE)
     {
         return stringformat("bluesphere_palette_extraLife_0%d", ExtraLifePalette)
     }
-    
     // Return the base function
     return base.getCharacterBluespherePaletteKey(character)
 }
@@ -849,4 +848,12 @@ function u16 Game.onTriggerNextZone()
 	}
 
 	return base.Game.onTriggerNextZone()
+}
+
+function s32 ESS_saveBoxGetColor_Es(u8 ES_val)
+{
+	if (ES_val == 75)
+		return 0x0FD439 //0x0CB084
+	
+	return base.ESS_saveBoxGetColor_Es(ES_val)
 }
