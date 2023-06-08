@@ -8,7 +8,7 @@ function bool Standalone.drawCharacterSprite(u8 character, u8 variant, s16 px, s
 	{
 		ExtraLifeCarriedAsBox(character, variant, px, py, asSmallGhost)
 	}	
-	if ((XtraChar == 75)||(variant == 2))&&( global.zone_act != 0x0000||camera.position.x.u16 >0x1100 ) && extraLife.RENDERTAILS == false && char.state != 0x34  //NOT FROZEN IN ICZ REDESIGNED
+	if ((XtraChar == 20)||(variant == 2))&&( global.zone_act != 0x0000||camera.position.x.u16 >0x1100 ) && extraLife.RENDERTAILS == false && char.state != 0x34  //NOT FROZEN IN ICZ REDESIGNED
 	{//custom render routines
 		return ExtraLifeRendering(character, variant, px, py, asSmallGhost)
 	}
@@ -46,7 +46,7 @@ function bool ExtraLifeRendering(u8 character, u8 variant, s16 px, s16 py, bool 
 	u8 rotationMode = 0
 
 	// Tails' Tails
-	if (variant == 2) && (XtraChar == 75)||(extraLife.SPAWNINGIN) && (XtraChar == 75)
+	if (variant == 2) && (XtraChar == 20)||(extraLife.SPAWNINGIN) && (XtraChar == 20)
 	{
 		//Do not render for extraLife when he *ISN'T* tails
 		//Do not render also for "flying in" so it will look like he pops in
@@ -128,7 +128,7 @@ function bool ExtraLifeRendering(u8 character, u8 variant, s16 px, s16 py, bool 
 				animationSprite = 0x78
 				rotationMode = 2
 			}
-			else if (XtraChar == 75 && animationSprite >= 0xc3 && animationSprite <= 0xca)
+			else if (XtraChar == 20 && animationSprite >= 0xc3 && animationSprite <= 0xca)
 			{
 				animationSprite = 0xc3 + (animationSprite - 0xc3) % 2
 				rotationMode = 1
@@ -171,11 +171,11 @@ function bool ExtraLifeRendering(u8 character, u8 variant, s16 px, s16 py, bool 
 		//stringformat("hud_lives_icon_%s", characterName)
 		//pick key to use
 		u64 innerkey = 0
-		if (XtraChar == 75 && super.active.tails)
+		if (XtraChar == 20 && super.active.tails)
 		{
 			innerkey = stringformat("superextraLife",0)
 		}
-		else if (XtraChar == 75)
+		else if (XtraChar == 20)
 		{
 			innerkey = stringformat("extraLife",0)
 		}
@@ -585,21 +585,21 @@ function bool ExtraLifeRendering(u8 character, u8 variant, s16 px, s16 py, bool 
 		{
 			if (super.active.tails) //super sonic
 			{
-				key = stringformat("character_superextraLife_0x9a", 0)
+				key = stringformat("character_superslot20_0x9a", 0)
 			}
 			else //sonic
 			{
 				if (extraLifeFrameCounter < 10)
 				{
-				key = stringformat("character_extraLife_0xa4L", 0)
+				key = stringformat("character_slot20_0xa4L", 0)
 				}
 				if ((extraLifeFrameCounter < 20) && (extraLifeFrameCounter >= 10))
 				{
-				key = stringformat("character_extraLife_0xa5L", 0)
+				key = stringformat("character_slot20_0xa5L", 0)
 				}
 				if ((extraLifeFrameCounter < 30) && (extraLifeFrameCounter >= 20))
 				{
-				key = stringformat("character_extraLife_0xa6L", 0)
+				key = stringformat("character_slot20_0xa6L", 0)
 				}
 				if (extraLifeFrameCounter < 30)
 				{
@@ -678,11 +678,11 @@ function bool ExtraLifeRendering(u8 character, u8 variant, s16 px, s16 py, bool 
 			{
 				if (super.active.tails)
 				{
-					key = stringformat("character_superextraLife_0xb1", 0)
+					key = stringformat("character_superslot20_0xb1", 0)
 				}
 				else
 				{
-					key = stringformat("character_extraLife_0xb1", 0)
+					key = stringformat("character_slot20_0xb1", 0)
 				}
 			}
 			else if (extraLifeFrameCounter < 15)
@@ -700,11 +700,11 @@ function bool ExtraLifeRendering(u8 character, u8 variant, s16 px, s16 py, bool 
 			{
 				if (super.active.tails)
 				{
-					key = stringformat("character_superextraLife_0xb1", 0)
+					key = stringformat("character_superslot20_0xb1", 0)
 				}
 				else
 				{
-					key = stringformat("character_extraLife_0xb1", 0)
+					key = stringformat("character_slot20_0xb1", 0)
 				}
 			}
 			else if (extraLifeFrameCounter < 25)
@@ -726,7 +726,7 @@ function bool ExtraLifeRendering(u8 character, u8 variant, s16 px, s16 py, bool 
 				}
 				else
 				{
-					key = stringformat("character_extraLife_0xb1", 0)
+					key = stringformat("character_slot20_0xb1", 0)
 				}
 			}
 			else if (extraLifeFrameCounter < 35)
@@ -747,7 +747,7 @@ function bool ExtraLifeRendering(u8 character, u8 variant, s16 px, s16 py, bool 
 			}
 			else if (extraLifeFrameCounter < 40)
 			{				
-				key = stringformat("character_extraLife_0xb1", 0)
+				key = stringformat("character_slot20_0xb1", 0)
 			}	
 			else if (extraLifeFrameCounter < 42)
 			{
@@ -789,7 +789,7 @@ function bool ExtraLifeRendering(u8 character, u8 variant, s16 px, s16 py, bool 
 		if (key == 0)
 		{
 			//pick from the proper frame based on ExtraLife's form
-			key = stringformat(super.active.tails ? "character_superextraLife_0x%02x" : "character_extraLife_0x%02x", animationSprite)
+			key = stringformat(super.active.tails ? "character_superslot20_0x%02x" : "character_slot20_0x%02x", animationSprite)
 
 			if (!Renderer.hasCustomSprite(key))
 			{
@@ -805,7 +805,7 @@ function bool ExtraLifeRendering(u8 character, u8 variant, s16 px, s16 py, bool 
 	}
 	else // Tails' tails
 	{
-		if ((XtraChar == 75) && Game.getSetting(SETTING_SMOOTH_ROTATION))
+		if ((XtraChar == 20) && Game.getSetting(SETTING_SMOOTH_ROTATION))
 		{
 			if (animationSprite >= 0x05 && animationSprite <= 0x14)
 			{

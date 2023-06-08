@@ -15,7 +15,7 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 	bool prioFlag = (objA0.sprite_attributes & 0x8000) != 0
     if(objA0.update_address == 0x0837b2) //SIGNPOST
     {
-        if(objA0.animation.sprite == 0x01 && XtraChar == 75)//Extra Life
+        if(objA0.animation.sprite == 0x01 && XtraChar == 20)//Extra Life
 		{		
 			u8 atex = 0x40 + 0x20 * getMainCharacter()
 			{
@@ -28,7 +28,7 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 	//  - Character name			-> objA0.animation.sprite = 0x13 ... 0x16
 	if (objA0.update_address == 0x02dd98)
 	{
-		if (objA0.animation.sprite == 0x14 && XtraChar == 75 || objA0.animation.sprite == 0x15 && XtraChar == 75)	// Extra Life
+		if (objA0.animation.sprite == 0x14 && XtraChar == 20 || objA0.animation.sprite == 0x15 && XtraChar == 20)	// Extra Life
 		{
 			Renderer.drawCustomSprite("slot75_text", px + 0x15, py + 0x8, 0x00, 0x40, renderQueue)
 			return true
@@ -51,7 +51,7 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 	if (gameMode == 0x48 || gameMode == 0x0c)	// Blue Spheres results + fade to main game afterwards
 	{
 		// Blue Spheres results texts
-		if (objA0.update_address == 0x02ea50 && global.xtrachar == 75)
+		if (objA0.update_address == 0x02ea50 && global.xtrachar == 20)
 		{
 			bool isSKStage = (global.lock_on_state == 0 && global.sk_bluespheres)
 			
@@ -65,7 +65,7 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 	
 //ENDING
 
-	if (XtraChar == 75)
+	if (XtraChar == 20)
 	{
 		//small plane and micro outside
 		//0x05d86a is contemporarily the small tornado flying right and the micro one flying left!
@@ -249,7 +249,7 @@ function void SpecialStage()
 	for (u8 player = 0; player < getNumPlayers(); ++player)
 	{
 		u8 character = getPlayerCharacter(player)
-		u64 paletteKey = (character == CHARACTER_SONIC) ? "bluesphere_palette_sonic" : (XtraChar == 75) ? "bluesphere_palette_extraLife" : "bluesphere_palette_knuckles"
+		u64 paletteKey = (character == CHARACTER_SONIC) ? "bluesphere_palette_sonic" : (XtraChar == 20) ? "bluesphere_palette_extraLife" : "bluesphere_palette_knuckles"
 		u16 numColors = System.loadExternalPaletteData(paletteKey, 0, 0x800000, 0x20)
 		if (numColors > 0)
 		{

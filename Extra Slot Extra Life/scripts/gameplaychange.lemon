@@ -388,7 +388,7 @@ function void fn07646e()
 function bool DEZFinalBoss3.canPlayerEnterDoomsday()
 {
 	//ExtraLife CAN enter doomsday! No questions!
-	if (XtraChar == 75)
+	if (XtraChar == 20)
 	{		
 		return base.DEZFinalBoss3.canPlayerEnterDoomsday()
 	}
@@ -764,7 +764,7 @@ function void fn05ef68()
 function void TriggerNextZone()
 {
   
-	if (XtraChar != 75)
+	if (XtraChar != 20)
 	{
 		base.TriggerNextZone()
 		return
@@ -799,7 +799,7 @@ function void TriggerNextZone()
 
 function void fn069526()
 {
-	if (global.zone_act != 0x0001 || XtraChar != 75)
+	if (global.zone_act != 0x0001 || XtraChar != 20)
     {
         base.fn069526()
         return

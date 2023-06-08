@@ -19,7 +19,7 @@ function void Character.updateJumpMoves()
 	//NEED TO CALL FOR TAILS IN MGZ AND THE INTROS?
 
 	//only extraLife, thanks!
-	if (XtraChar != 75)
+	if (XtraChar != 20)
 	{
 		base.Character.updateJumpMoves()
 		return
@@ -63,7 +63,7 @@ function void Character.updateJumpMoves()
 					//EXTRA LIFE HAS A DIRECTIONAL - MID AIR LIKE drop dash
 					//SLOWDOWN GRAVITY WHEN BUTTON HELD?
 					//FIRST CHECK: AI OR PLAYER?
-					if (tails.control_counter > 0|| XtraChar == 75) // player
+					if (tails.control_counter > 0|| XtraChar == 20) // player
 					{
 						char.double_jump_state = 1							
 					}
@@ -238,7 +238,7 @@ function void ExtraLifePressedJumpInMidAir()
 //# address-hook(0x0137c4) end(0x0138f4)
 function void Character.UpdateNormalState.Tails()
 {
-	if (XtraChar != 75)
+	if (XtraChar != 20)
 	{
 		base.Character.UpdateNormalState.Tails()
 		return
@@ -362,7 +362,7 @@ function void Character.UpdateNormalState.Tails()
 
 function void Character.updateUprightOnGround() //Extra Life can peelout
 {
-	if (XtraChar != 75)
+	if (XtraChar != 20)
 	{
 		base.Character.updateUprightOnGround()
 		return
@@ -371,7 +371,7 @@ function void Character.updateUprightOnGround() //Extra Life can peelout
 	ExtraLife.MidairTimer = 0
 	ExtraLife.MaxRedash = 0
 	
-	if (XtraChar == 75 && tails.carrying)
+	if (XtraChar == 20 && tails.carrying)
 	{
 		A1 = 0xffffb000
 		objA1.flags2a |= char.flag.IN_AIR
@@ -386,7 +386,7 @@ function void Character.updateUprightOnGround() //Extra Life can peelout
 #if STANDALONE
 
 	//if (char.character == CHARACTER_SONIC && Game.getSetting(SETTING_SUPER_PEELOUT))
-	if ((XtraChar == 75) && Game.getSetting(SETTING_SUPER_PEELOUT))
+	if ((XtraChar == 20) && Game.getSetting(SETTING_SUPER_PEELOUT))
 	{
 		if (Character.updateSuperPeelout())
 			return
@@ -408,7 +408,7 @@ function void Character.updateUprightOnGround() //Extra Life can peelout
 function void Character.UpdateTailsRollingInAir()
 {
 			
-	if (tails.carrying && XtraChar == 75)
+	if (tails.carrying && XtraChar == 20)
 	{
 		A1 = 0xffffb000
 		u8[A1 + 0x2e] = 0
@@ -492,7 +492,7 @@ function void Character.OnThreatCollision()
 function void Character.GettingHurt()
 {
 	
-	if (XtraChar != 75)
+	if (XtraChar != 20)
 	{
 		base.Character.GettingHurt()
 		return
@@ -600,7 +600,7 @@ function void Character.GettingHurt()
 // ExtraLife has larger hitbox
 function void Character.Initialization.shared(u8 character)
 {
-	if (XtraChar != 75)
+	if (XtraChar != 20)
 	{
 		base.Character.Initialization.shared(character)
 		return
@@ -713,7 +713,7 @@ function void Character.Initialization.shared(u8 character)
 //Every time the form isn't Tails
 function void releaseSpindash()
 {
-	if (XtraChar == 75)
+	if (XtraChar == 20)
 	{
 		base.releaseSpindash()
 		return
@@ -946,7 +946,7 @@ function void fn030cf8()
 // Always allow both Super and Hyper Extra Life, fix transformation animation, and remove the Flicky army of death
 function bool Character.performSuperTransformation()
 {
-	if (global.xtrachar != 75)
+	if (global.xtrachar != 20)
 	{
 		return base.Character.performSuperTransformation()
 	}

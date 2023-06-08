@@ -11,7 +11,7 @@ function void fn01fd08()
 {
 	//I'll trigger this only when extraLife is player 1.
 	A1 = 0xffffb000
-	if (global.xtrachar != 75)
+	if (global.xtrachar != 20)
 	{
 		base.fn01fd08()
 		return
@@ -35,7 +35,7 @@ function void fn01fd08()
 		D1.u16 = u16[A0 + 0x30]
 		if (D6.u16 & 0x01)
 		{
-			if (u8[A1 + 0x38] == CHARACTER_KNUCKLES || XtraChar == 75 && (ExtraLife.AirDash == true))
+			if (u8[A1 + 0x38] == CHARACTER_KNUCKLES || XtraChar == 20 && (ExtraLife.AirDash == true))
 			{
 				// Knuckles can break all walls
 				canBreakWall = true
@@ -85,7 +85,7 @@ function void fn01fd08()
 
 			if (objA0.flags2a & 0x40)
 			{
-				if (u8[A1 + 0x38] == CHARACTER_KNUCKLES || XtraChar == 75 && (ExtraLife.AirDash == true))
+				if (u8[A1 + 0x38] == CHARACTER_KNUCKLES || XtraChar == 20 && (ExtraLife.AirDash == true))
 				{
 					// Knuckles can break all walls
 					canBreakWall = true
@@ -169,7 +169,7 @@ function void fn021568()
 	if (D6.u16 & 0x01)
 	{
 		bool canBreakWall = false
-		if (super.active || u8[A1 + 0x38] == CHARACTER_KNUCKLES || XtraChar == 75 && (ExtraLife.AirDash == true))
+		if (super.active || u8[A1 + 0x38] == CHARACTER_KNUCKLES || XtraChar == 20 && (ExtraLife.AirDash == true))
 		{
 			// Super/Hyper forms can break walls, and Knuckles can
 			canBreakWall = true

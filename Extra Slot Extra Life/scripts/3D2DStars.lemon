@@ -7,7 +7,7 @@ global u8 HyperStars
 //# address-hook(0x08167c) end(0x0816ee)
 function void fn08167c()
 {
-	if (XtraChar != 75)
+	if (XtraChar != 20)
 	{
 		base.fn08167c()
 		return
@@ -152,7 +152,7 @@ function void S3d2dStars.Star.Update()
 {
 	//note, the star is A0 here	
 	//unload if not super
-	if (XtraChar == 75 && super.active == false && super.active.tails == false)
+	if (XtraChar == 20 && super.active == false && super.active.tails == false)
 	{
 		UnloadObject()		
 	}
