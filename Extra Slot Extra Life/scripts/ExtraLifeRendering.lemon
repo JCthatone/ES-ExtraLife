@@ -8,7 +8,7 @@ function bool Standalone.drawCharacterSprite(u8 character, u8 variant, s16 px, s
 	{
 		ExtraLifeCarriedAsBox(character, variant, px, py, asSmallGhost)
 	}	
-	if ((XtraChar == 20)||(variant == 2))&&( global.zone_act != 0x0000||camera.position.x.u16 >0x1100 ) && extraLife.RENDERTAILS == false && char.state != 0x34  //NOT FROZEN IN ICZ REDESIGNED
+	if ((global.xtrachar == 20 && character == CHARACTER_TAILS && A0 == 0xffffb000)||(variant == 2))&&( global.zone_act != 0x0000||camera.position.x.u16 >0x1100 ) && extraLife.RENDERTAILS == false && char.state != 0x34  //NOT FROZEN IN ICZ REDESIGNED
 	{//custom render routines
 		return ExtraLifeRendering(character, variant, px, py, asSmallGhost)
 	}
@@ -46,7 +46,7 @@ function bool ExtraLifeRendering(u8 character, u8 variant, s16 px, s16 py, bool 
 	u8 rotationMode = 0
 
 	// Tails' Tails
-	if (variant == 2) && (XtraChar == 20)||(extraLife.SPAWNINGIN) && (XtraChar == 20)
+	if (variant == 2) || (extraLife.SPAWNINGIN)
 	{
 		//Do not render for extraLife when he *ISN'T* tails
 		//Do not render also for "flying in" so it will look like he pops in
@@ -85,6 +85,7 @@ function bool ExtraLifeRendering(u8 character, u8 variant, s16 px, s16 py, bool 
 			py -= move_area.bottom.target
 	}
 
+	key = Standalone.getModdedAnimationSpriteKey(character, animationSpriteEx)		// First ask modded scripts
 	if (variant < 2)
 	{//It's a character, not Tails' Tails
 		//RESET COUNTER IF STATE HAS CHANGED
@@ -128,7 +129,7 @@ function bool ExtraLifeRendering(u8 character, u8 variant, s16 px, s16 py, bool 
 				animationSprite = 0x78
 				rotationMode = 2
 			}
-			else if (XtraChar == 20 && animationSprite >= 0xc3 && animationSprite <= 0xca)
+			else if (animationSprite >= 0xc3 && animationSprite <= 0xca)
 			{
 				animationSprite = 0xc3 + (animationSprite - 0xc3) % 2
 				rotationMode = 1
@@ -170,15 +171,7 @@ function bool ExtraLifeRendering(u8 character, u8 variant, s16 px, s16 py, bool 
 		// Overwrite an animation with the proper one
 		//stringformat("hud_lives_icon_%s", characterName)
 		//pick key to use
-		u64 innerkey = 0
-		if (XtraChar == 20 && super.active.tails)
-		{
-			innerkey = stringformat("superextraLife",0)
-		}
-		else if (XtraChar == 20)
-		{
-			innerkey = stringformat("extraLife",0)
-		}
+		u64 innerkey = (super.active.tails) ? stringformat("superextraLife",0) : stringformat("extraLife",0)
 		// ROLLING ANIMATION (common)
 		// overwrite with the custom frames
 		// and set appropriate speed
@@ -805,7 +798,7 @@ function bool ExtraLifeRendering(u8 character, u8 variant, s16 px, s16 py, bool 
 	}
 	else // Tails' tails
 	{
-		if ((XtraChar == 20) && Game.getSetting(SETTING_SMOOTH_ROTATION))
+		if (Game.getSetting(SETTING_SMOOTH_ROTATION))
 		{
 			if (animationSprite >= 0x05 && animationSprite <= 0x14)
 			{
@@ -869,7 +862,7 @@ function bool ExtraLifeRendering(u8 character, u8 variant, s16 px, s16 py, bool 
 	//its position on screen has to be stored, as well as the camera's old position in the map
 	if (extraLife.Monitor > 0)
 	{
-		if (extraLife.Monitor == 1) //set the coordinates and the starting old camera
+		if (extraLife.Monitor ==  1) //set the coordinates and the starting old camera
 		{
 			extraLife.STARTASBOX = false //turn off the startasbox flag
 			extraLife.PX = px
@@ -885,7 +878,7 @@ function bool ExtraLifeRendering(u8 character, u8 variant, s16 px, s16 py, bool 
 		extraLife.cameraOLDY = camera.position.y.u16
 		
 		u64 key4
-		if (extraLife.Monitor<24)
+		if (extraLife.Monitor < 24)
 		{
 			key4 = stringformat("extraLife_smoke_%d", extraLife.Monitor/6 )
 			//account for gravity --> 0x02		

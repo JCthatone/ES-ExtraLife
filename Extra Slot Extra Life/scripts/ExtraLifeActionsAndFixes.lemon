@@ -371,21 +371,11 @@ function void Character.updateUprightOnGround() //Extra Life can peelout
 	ExtraLife.MidairTimer = 0
 	ExtraLife.MaxRedash = 0
 	
-	if (XtraChar == 20 && tails.carrying)
-	{
-		A1 = 0xffffb000
-		objA1.flags2a |= char.flag.IN_AIR
-		u8[A1 + 0x2e] = 0
-		tails.carrying = 0
-		tails.catch_timeout = 0
-	}
-
 	if (Character.UpdateSpindash())
 		return
 
 #if STANDALONE
 
-	//if (char.character == CHARACTER_SONIC && Game.getSetting(SETTING_SUPER_PEELOUT))
 	if ((XtraChar == 20) && Game.getSetting(SETTING_SUPER_PEELOUT))
 	{
 		if (Character.updateSuperPeelout())
@@ -404,23 +394,6 @@ function void Character.updateUprightOnGround() //Extra Life can peelout
 	Character.sharedUpdateOnGround()
 }
 
-//# address-hook(0x0149a2) end(0x0149e2)
-function void Character.UpdateTailsRollingInAir()
-{
-			
-	if (tails.carrying && XtraChar == 20)
-	{
-		A1 = 0xffffb000
-		u8[A1 + 0x2e] = 0
-		objA1.flags2a |= char.flag.IN_AIR
-		tails.carrying = 0
-		tails.catch_timeout = 0
-	}
-
-	updateTailsInAir_shared()
-}
-
-
 //----------
 //COLLISIONS
 //----------
@@ -428,7 +401,7 @@ function void Character.UpdateTailsRollingInAir()
 //# address-hook(0x01021e) end(0x010288)
 function void Character.OnThreatCollision()
 {
-	if (u8[A1 + 0x38] != CHARACTER_TAILS)
+	if (global.xtrachar != 75)
 	{
 		base.Character.OnThreatCollision()
 		return
@@ -713,7 +686,7 @@ function void Character.Initialization.shared(u8 character)
 //Every time the form isn't Tails
 function void releaseSpindash()
 {
-	if (XtraChar == 20)
+	if (XtraChar != 20)
 	{
 		base.releaseSpindash()
 		return

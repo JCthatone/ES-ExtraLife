@@ -10,12 +10,13 @@
 function void fn01fd08()
 {
 	//I'll trigger this only when extraLife is player 1.
-	A1 = 0xffffb000
 	if (global.xtrachar != 20)
 	{
 		base.fn01fd08()
 		return
 	}
+	
+	A1 = 0xffffb000
 
 	u16[A0 + 0x30] = u16[0xffffb018]
 	u16[A0 + 0x36] = u16[0xffffb062]

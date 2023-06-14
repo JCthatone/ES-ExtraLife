@@ -20,6 +20,15 @@ function string getCharacterBluespherePaletteKey(u8 character)
     return base.getCharacterBluespherePaletteKey(character)
 }
 
+function u64 getCharacterBonusTextIcon(u8 character)
+{
+    if (global.xtrachar == 20)
+    {
+        return "hud_bonus_icon_ExtraLife"
+    }
+    return base.getCharacterBonusTextIcon(character)
+}
+
 function u32 Game.getSetting(u32 settingId)
 {
     if (global.xtrachar == 20)
@@ -71,7 +80,7 @@ function bool ExtraChar.renderHUD_char20()
 function u64 ExtraChar.getIconSpriteKey_char20(u8 type)
 {
 	if (type == 0x01)
-		return "monitor_icon_extraLife"
+		return "monitor_icon_slot20"
 	else if (type == 0x02)
 		return "monitor_icon_robotnik"
 	else if (type == 0x03)
@@ -793,51 +802,56 @@ function bool ExtraChar.checkStartJump_char20()
 
 function void SuperThenHyperfunc()
 {
-if (Mods.isModActive("Characters Go Super Then Hyper") && XtraChar == 20)
-{ 
-	u8 input_state     = (char.character == CHARACTER_TAILS) ? control.tails.state   : control.player1.state
-	u8 input_pressed   = (char.character == CHARACTER_TAILS) ? control.tails.pressed : control.player1.pressed
-	bool isSuperActive = (char.character == CHARACTER_TAILS) ? super.active.tails    : super.active
+	if (Mods.isModActive("Characters Go Super Then Hyper") && XtraChar == 20)
+	{ 
+		u8 input_state     = (char.character == CHARACTER_TAILS) ? control.tails.state   : control.player1.state
+		u8 input_pressed   = (char.character == CHARACTER_TAILS) ? control.tails.pressed : control.player1.pressed
+		bool isSuperActive = (char.character == CHARACTER_TAILS) ? super.active.tails    : super.active
 
-	if (char.jumping)
-	{
-		// Limit velocity.y
-		s16 max_vy = (char.flags & char.flag.UNDERWATER) ? -0x801 : -0x801
-		if (char.velocity.y < max_vy)
+		if (char.jumping)
 		{
-			// Limit vertical velocity while not pressing any jump button
-			//  -> This is important to support low jumps by just tapping the button briefly
-			if ((input_state & CONTROL_ABC) == 0)
+			// Limit velocity.y
+			s16 max_vy = (char.flags & char.flag.UNDERWATER) ? -0x801 : -0x801
+			if (char.velocity.y < max_vy)
 			{
-				char.velocity.y = max_vy
+				// Limit vertical velocity while not pressing any jump button
+				//  -> This is important to support low jumps by just tapping the button briefly
+				if ((input_state & CONTROL_ABC) == 0)
+				{
+					char.velocity.y = max_vy
+				}
+			}
+		}
+		else
+		{
+			if (char.double_jump_state == 0)
+			{
+				#if STANDALONE
+					if (Input.buttonPressed(BUTTON_Y) && !System.getGlobalVariableValueByName("original_mode"))
+					{
+						if ((super.active == 0xff || super.active.tails == 0xff) == 0 && char.invuln.countdown == 0)	// Check invulnerability to prevent spamming of super activate + cancel
+						{
+							if (global.chaos_emeralds >= 7 && global.traded_emeralds == 0 && (super.active == 1 || super.active.tails == 1))
+							{
+								char.jumping = 0
+								return
+							}
+							if (Character.performSuperTransformation())
+							{
+								char.jumping = 0
+								return
+							}
+						}
+					}
+				#endif
 			}
 		}
 	}
-	else
-	{
-		if (char.double_jump_state == 0)
-		{
-			#if STANDALONE
-				if (Input.buttonPressed(BUTTON_Y) && !System.getGlobalVariableValueByName("original_mode"))
-				{
-					if ((super.active == 0xff || super.active.tails == 0xff) == 0 && char.invuln.countdown == 0)	// Check invulnerability to prevent spamming of super activate + cancel
-					{
-						if (global.chaos_emeralds >= 7 && global.traded_emeralds == 0 && (super.active == 1 || super.active.tails == 1))
-						{
-							char.jumping = 0
-							return
-						}
-						if (Character.performSuperTransformation())
-						{
-							char.jumping = 0
-							return
-						}
-					}
-				}
-			#endif
-		}
-	}
 }
+
+function void TailsPressedJumpInMidAir()
+{
+  base.TailsPressedJumpInMidAir()
 }
 
 function u16 Game.onTriggerNextZone()
@@ -856,4 +870,12 @@ function s32 ESS_saveBoxGetColor_Es(u8 ES_val)
 		return 0x0FD439 //0x0CB084
 	
 	return base.ESS_saveBoxGetColor_Es(ES_val)
+}
+
+function string getESCharacterFallSpriteKey(u8 character, u8 extrachar)
+{
+	if (extrachar == 20 && character == CHARACTER_TAILS)
+		return (super.active.tails) ? "falling_superextralife" : "falling_extralife"
+
+	return base.getESCharacterFallSpriteKey(character, extrachar)
 }

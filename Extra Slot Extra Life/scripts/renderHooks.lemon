@@ -28,9 +28,9 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 	//  - Character name			-> objA0.animation.sprite = 0x13 ... 0x16
 	if (objA0.update_address == 0x02dd98)
 	{
-		if (objA0.animation.sprite == 0x14 && XtraChar == 20 || objA0.animation.sprite == 0x15 && XtraChar == 20)	// Extra Life
+		if (objA0.animation.sprite == 0x14 && global.xtrachar == 20 || objA0.animation.sprite == 0x15 && global.xtrachar == 20)	// Extra Life
 		{
-			Renderer.drawCustomSprite("slot75_text", px + 0x15, py + 0x8, 0x00, 0x40, renderQueue)
+			Renderer.drawCustomSprite("slot20_text", px + 0x15, py + 0x8, 0x00, 0x40, renderQueue)
 			return true
 		}
 	}
@@ -57,7 +57,7 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 			
 			if (objA0.animation.sprite == 0x14 || objA0.animation.sprite == 0x15)	// CHAOS
 			{
-				Renderer.drawCustomSprite("slot75_text", px + 0x15, py + 0x8, 0x00, 0x40, renderQueue)
+				Renderer.drawCustomSprite("slot20_text", px + 0x15, py + 0x8, 0x00, 0x40, renderQueue)
 				return true
 			}			
 		}
@@ -101,23 +101,23 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 
 	// Characters in Data Select screen character selection
 	// The arrows and big portraits are compound sprites for this object, so set objA0.animation.sprite to an empty frame instead of "return true" to not skip rendering those.
-	if (objA0.update_address == 0x00d30c || objA0.update_address == 0x00d42c)
-	{
-		u16 characters = (objA0.update_address == 0x00d30c) ? dataselect.nosave_characters : u16[A0 + 0x34]
+	// if (objA0.update_address == 0x00d30c || objA0.update_address == 0x00d42c)
+	// {
+	// 	u16 characters = (objA0.update_address == 0x00d30c) ? dataselect.nosave_characters : u16[A0 + 0x34]
 
-		if (characters == CHARS_SONIC_AND_TAILS||characters == CHARS_KNUCKLES_AND_TAILS)
-		{
-			// Extra Life
-			Renderer.drawCustomSprite("dataSel_character_tails", px+7, py-1, 0x80, SPRITE_FLAG_FLIP_X, renderQueue)
-			objA0.animation.sprite = 0
-		}		
-		else if (characters == CHARS_TAILS_ALONE)
-		{
-			// Extra Life
-			Renderer.drawCustomSprite("dataSel_character_tails", px, py, 0x80, 0x00, renderQueue)
-			objA0.animation.sprite = 0
-		}	
-	}
+	// 	if (characters == CHARS_SONIC_AND_TAILS||characters == CHARS_KNUCKLES_AND_TAILS)
+	// 	{
+	// 		// Extra Life
+	// 		Renderer.drawCustomSprite("dataSel_character_tails", px+7, py-1, 0x80, SPRITE_FLAG_FLIP_X, renderQueue)
+	// 		objA0.animation.sprite = 0
+	// 	}		
+	// 	else if (characters == CHARS_TAILS_ALONE)
+	// 	{
+	// 		// Extra Life
+	// 		Renderer.drawCustomSprite("dataSel_character_tails", px, py, 0x80, 0x00, renderQueue)
+	// 		objA0.animation.sprite = 0
+	// 	}	
+	// }
 	
 	if (objA0.update_address == 0x20008e)
 	{
