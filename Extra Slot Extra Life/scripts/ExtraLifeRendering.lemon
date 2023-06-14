@@ -36,10 +36,6 @@ global bool extraLife.STARTASBOX //Start as a falling box in CNZ and MHZ
 
 function bool ExtraLifeRendering(u8 character, u8 variant, s16 px, s16 py, bool asSmallGhost)
 {
-  if (global.xtrachar != 75)
-  {
-    return base.ExtraLifeRendering(character, variant, px, py, asSmallGhost)
-  }
   
 	bool isPlayer1 = (variant == 0)
 	u32 characterAddress = isPlayer1 ? 0xffffb000 : 0xffffb04a
@@ -62,6 +58,7 @@ function bool ExtraLifeRendering(u8 character, u8 variant, s16 px, s16 py, bool 
 		
 		if (global.zone == 0x15)
 		{			
+		
 			return true			
 		}
 		characterAddress = 0xffff0000 + u16[A0 + 0x30]
