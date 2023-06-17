@@ -401,7 +401,7 @@ function void Character.updateUprightOnGround() //Extra Life can peelout
 //# address-hook(0x01021e) end(0x010288)
 function void Character.OnThreatCollision()
 {
-	if (global.xtrachar != 75)
+	if (global.xtrachar != 20)
 	{
 		base.Character.OnThreatCollision()
 		return
