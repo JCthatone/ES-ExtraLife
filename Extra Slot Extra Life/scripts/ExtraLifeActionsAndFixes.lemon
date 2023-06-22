@@ -1181,21 +1181,7 @@ function void fn07fe06()
 
 
 //-------------------
-// PROBLEM HERE WITH AI SPAWN AND ASSIST!
-// WHENEVER HE SPAWNS 
-// WHENEVER ASSIST CALLED
-// AT THE START OF MARBLE GARDEN 2 BOSS
-//-------------------
-//THIS IS ONLY USED BY TAILS
-
-//TAILS ASSIST --> No assist
-#if STANDALONE
-function bool onCharacterPressedJumpInMidAir(u8 input_state, u8 input_pressed)
-{
-	// Use normal jump button reaction
-	return true
-}
-#endif
+// ASSIST WAS HERE BUT I REMOVED IT
 
 
 //REGULAR SPAWN IN IN A SONIC GAME
