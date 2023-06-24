@@ -223,6 +223,149 @@ function void fn021568()
 		DrawOrUnloadObject()
 	}
 }
+
+//# address-hook(0x08a280) end(0x08a2dc)
+function void fn08a280()
+{
+
+	if (global.xtrachar != 20)
+	{
+	    base.fn08a280()
+	}
+
+#if STANDALONE
+	// Ground speed of player 1 before the collision
+	s16 speed = s16[0xffffb000 + 0x1c]
+#endif
+
+	D1 = 0x2b
+	D2 = 0x40
+	D3 = 0x70
+	D4.u16 = objA0.position.x.u16
+	fn01dc56()
+
+	// Extra Life can break this kind of wall
+	if (global.xtrachar == 20 && ExtraLife.AirDash == true)
+	{
+		D6 = (D6 << 16) + (D6 >> 16)
+		D6.u16 &= 0x01
+		if (D6.u16 != 0)
+		{
+			fn08a2e2()
+
+		#if STANDALONE
+			// Restore Knuckles ground speed, which in most cases got reset
+			// TODO: Check how this is done in other cases of breakable rocks
+			s16[0xffffb000 + 0x1c] = speed
+			u8[0xffffb000 + 0x2a] &= ~char.flag.PUSHING
+		#endif
+			return
+		}
+	}
+
+	A1 = 0xffff0000 + u16[0xfffffaa4]
+	if (objA1.update_address == 0x089f38)
+	{
+		D0.u16 = objA1.position.x.u16
+		D1.u16 = objA1.position.y.u16 & level.height.bitmask
+		D2.u16 = objA0.position.x.u16
+		D3.u16 = objA0.position.y.u16
+
+		A2 = 0x08a2fc
+		D2.u16 += u16[A2]
+		if (D0.u16 >= D2.u16)
+		{
+			D2.u16 += u16[A2+2]
+			if (D0.u16 < D2.u16)
+			{
+				D3.u16 += u16[A2+4]
+				if (D1.u16 >= D3.u16)
+				{
+					D3.u16 += u16[A2+6]
+					if (D1.u16 < D3.u16)
+					{
+						fn08a2e2()
+						return
+					}
+				}
+			}
+		}
+	}
+
+	DrawOrUnloadObject()
+}
+
+//# address-hook(0x021818) end(0x021936)
+function void fn021818()
+{
+	if (global.xtrachar != 20)
+	{
+		base.fn021818()
+	}
+	u16[A0 + 0x30] = u16[0xffffb000 + 0x18]
+	objA0.value32 = u16[0xffffb04a + 0x18]
+	D1 = objA0.box_size.x + 11
+	D2 = objA0.box_size.y
+	D3.u16 = D2.u16 + 1
+	D4.u16 = objA0.position.x.u16
+	fn01dc56()
+	if (s8[A0 + 0x2c] < 0)
+	{
+		if (level.trigger00 == 0)
+		{
+			DrawOrUnloadObject()
+		}
+		else
+		{
+			UnloadObject()
+		}
+		return
+	}
+
+	D6 = (D6 << 16) + (D6 >> 16)
+	D6.u16 &= 0x03
+	if (D6.u16 == 0)
+	{
+		DrawOrUnloadObject()
+		return
+	}
+
+	A1 = 0xffffb000
+	D1.u16 = u16[A0 + 0x30]
+	if ((D6.u16 & 0x01) && (u8[A1 + 0x38] == CHARACTER_TAILS))
+	{
+		objA0.flags2a &= ~object.flag.P1_PUSHING
+		if (global.zone == 0x02 && global.xtrachar == 20 && ExtraLife.AirDash == true)
+		fn0218ce()
+
+		A1 = 0xffffb04a
+		if ((objA0.flags2a & object.flag.P2_PUSHING) == 0)
+		{
+			DrawOrUnloadObject()
+			return
+		}
+
+		objA1.velocity.x = objA0.value32
+		objA1.groundspeed = objA1.velocity.x
+		objA0.flags2a &= ~object.flag.P2_PUSHING
+		objA1.flags2a &= ~char.flag.PUSHING
+		DrawOrUnloadObject()
+	}
+	else
+	{
+		A1 = 0xffffb04a
+		D1.u16 = objA0.value32
+		if ((objA0.flags2a & object.flag.P2_PUSHING) == 0 || u8[A1 + 0x38] != CHARACTER_KNUCKLES)
+		{
+			DrawOrUnloadObject()
+			return
+		}
+
+		objA0.flags2a &= ~object.flag.P2_PUSHING
+		fn0218ce()
+	}
+}
+
 //---------------------------------------
 // WALL BREAK -- END
 //---------------------------------------
