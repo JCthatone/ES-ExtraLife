@@ -30,9 +30,9 @@
 				}
 			},
 			{
-				"InternalName": "FBZSkip",
-				"DisplayName": "Skip Flying Battery",
-				"Variable": "FBZSkip",
+				"InternalName": "TDZSkip",
+				"DisplayName": "Skip Doomsday",
+				"Variable": "TDZSkip",
 				"DefaultValue": "0",	
 				"Category": "Story",			
 				"Options":
