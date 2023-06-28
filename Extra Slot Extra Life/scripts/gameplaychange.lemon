@@ -1,4 +1,5 @@
 global u8 EndLocation
+global u8 TDZSkip
 
 //-------------------------------------------------------//
 // STARTING LOCATIONS                                    //
@@ -9,33 +10,15 @@ global u8 EndLocation
 //# address-hook(0x0067ee) end(0x0069b6)
 function void fn0067ee()
 {
+    if (global.xtrachar != 20)
+	{
+		base.fn0067ee()
+	}
+
 	//AFFECTS ALL CHARS AS IT IS THE FLAG FOR THE RENDER OF EXTRA LIFE TOO
 	extraLife.RENDERTAILS = false
 	extraLife.SPAWNINGIN = false
 	extraLife.CARRYBOX = false
-	
-	//DETECT MIGHTY, METAL OR SHADOW under this mode, allow if ICZ start or HPZ
-	//Leave control to their start locations
-	if(global.zone_act == 0x0500)||(global.zone_act == 0x1601)
-	{
-		u64 otherCharMods = stringformat("goal_mighty_UW", 0)
-		bool usebasecode = false
-		if (Renderer.hasCustomSprite(otherCharMods))
-			usebasecode = true
-		otherCharMods = stringformat("goal_metal_UW", 0)
-		if (Renderer.hasCustomSprite(otherCharMods))
-			usebasecode = true
-		otherCharMods = stringformat("goal_shadow_UW", 0)
-		if (Renderer.hasCustomSprite(otherCharMods))
-			usebasecode = true
-		if (usebasecode)
-		{
-			base.fn0067ee()
-			return
-		}
-	}
-	
-	
 	
 	u32[0xffffb094] = 0x006c2c
 	InitializeGameCharacters()
@@ -388,11 +371,11 @@ function void fn07646e()
 function bool DEZFinalBoss3.canPlayerEnterDoomsday()
 {
 	//ExtraLife CAN enter doomsday! No questions!
-	if (XtraChar == 20)
+	if (XtraChar == 20 && TDZSkip == 0)
 	{		
 		return base.DEZFinalBoss3.canPlayerEnterDoomsday()
 	}
-	return ( global.chaos_emeralds == 7)
+	return (global.chaos_emeralds == 7)
 }
 
 //-------------------------------------------------------//

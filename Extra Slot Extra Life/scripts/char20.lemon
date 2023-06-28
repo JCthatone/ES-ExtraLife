@@ -854,16 +854,6 @@ function void TailsPressedJumpInMidAir()
   base.TailsPressedJumpInMidAir()
 }
 
-function u16 Game.onTriggerNextZone()
-{
-	if (global.zone == 0x08 && global.xtrachar == 20 && FBZSkip == 1)
-	{
-		global.zone == 0x09
-	}
-
-	return base.Game.onTriggerNextZone()
-}
-
 function s32 ESS_saveBoxGetColor_Es(u8 ES_val)
 {
 	if (ES_val == 20)
