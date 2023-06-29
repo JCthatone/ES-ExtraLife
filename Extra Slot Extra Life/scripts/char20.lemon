@@ -1,5 +1,5 @@
 global u8 ExtraLifePalette
-global u8 FBZSkip
+// global u8 FBZSkip
 
 function string getExtraCharacterPaletteKey(u8 xtrachar)
 {
