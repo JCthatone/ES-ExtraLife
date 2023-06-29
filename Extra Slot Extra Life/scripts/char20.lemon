@@ -872,12 +872,5 @@ function string getESCharacterFallSpriteKey(u8 character, u8 extrachar)
 
 function u32 getCharacterColorsForControllerLEDs(u8 character)
 {
-	if (character == CHARACTER_SONIC && global.xtrachar == 20 && levelselect.characters != 0) 
-	{
-		return 0x4848B4
-	} 
-	else
-	{
-	base.getCharacterColorsForControllerLEDs(character)
-	}
+	return (character == CHARACTER_SONIC && global.xtrachar == 3 && levelselect.characters != 0) ? 0x4848B4 : base.getCharacterColorsForControllerLEDs(character)
 }
