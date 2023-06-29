@@ -2,9 +2,10 @@
 	"Metadata":
 	{
 		"Name": "Extra Slot Extra Life",
-		"Author": "Sotaknuck, Just_Chris",
+		"Author": "Sotaknuck, JC_thatone, michael7, icloudius",
 		"Description": "Sonic's evil Clone Extra Life roams through Angel Island.",
 		"ModVersion": "1.0",
+		"GameVersion": "22.04.26.0"
 	},
 	"Settings":
 	{
