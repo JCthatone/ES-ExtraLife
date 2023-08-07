@@ -371,7 +371,7 @@ function void fn07646e()
 function bool DEZFinalBoss3.canPlayerEnterDoomsday()
 {
 	//ExtraLife CAN enter doomsday! No questions!
-	if (XtraChar == 20 && TDZSkip == 0)
+	if (global.xtrachar == 20)
 	{		
 		return base.DEZFinalBoss3.canPlayerEnterDoomsday()
 	}
@@ -780,9 +780,10 @@ function void TriggerNextZone()
 #endif
 }
 
+//knuckles path transition code (shoutout to icloudius for letting me use this)
 function void fn069526()
 {
-	if (global.zone_act != 0x0001 || XtraChar != 20)
+	if (global.zone_act != 0x0001 || global.xtrachar != 20)
     {
         base.fn069526()
         return

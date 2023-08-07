@@ -1,8 +1,8 @@
 include ExtraLifeActionsAndFixes
 include ExtraLifeRendering
 include wallBreak
-include palettes
 include renderHooks
 include gameplaychange
 include char20
 include 3D2DStars
+include palettes

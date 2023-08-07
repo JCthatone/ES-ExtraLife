@@ -2,7 +2,8 @@
 	"Metadata":
 	{
 		"Name": "Extra Slot Extra Life",
-		"Author": "Sotaknuck, JC_thatone, michael7, icloudius",
+		"Author": "Sotaknuck, JC_thatone, Michael7, iCloudius",
+		"UniqueID": "ES-EXTRALIFE",
 		"Description": "Sonic's evil Clone Extra Life roams through Angel Island.",
 		"ModVersion": "1.0",
 		"GameVersion": "22.04.26.0"
@@ -26,20 +27,8 @@
 					"0x04": "....?",
 					"0x05": "Pickle",
 					"0x06": "Bits With Pieces",
-					"0x07": "4-Side",
+					"0x07": "Sonic",
 					"0x08": "Major G"
-				}
-			},
-			{
-				"InternalName": "TDZSkip",
-				"DisplayName": "Skip Doomsday",
-				"Variable": "TDZSkip",
-				"DefaultValue": "0",	
-				"Category": "Story",			
-				"Options":
-				{
-					"0": "No",
-					"1": "Yes"
 				}
 			}
 		]

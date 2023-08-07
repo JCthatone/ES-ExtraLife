@@ -8,6 +8,7 @@
 	"dataSel_life_slot20":  { "File": "interface.png", "Rect": "78,0,21,16", "Center": "0,0" },
 	"level_select_S3C_ExtraLife":  { "File": "interface.png", "Rect": "78,0,16,16", "Center": "0,0" },
 	"goal_extraLife":  { "File": "signpost.bmp", "Rect": "0,0,48,32", "Center": "24,16" },
+	"maniainsp_signpost_slot20":  { "File": "signpostmaniainsp.bmp", "Rect": "0,0,48,32", "Center": "24,16" },
 	"slot20_text":  { "File": "interface.png", "Rect": "0,66,126,16", "Center": "86,8" },
 	"dataSel_savePortrait_slot20":  { "File": "interface.png", "Rect": "0,82,80,56", "Center": "40,120" },
 	"dataSel_savePortrait_Superslot20":  { "File": "interface.png", "Rect": "80,82,80,56", "Center": "40,120" },
