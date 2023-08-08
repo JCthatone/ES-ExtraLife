@@ -1,5 +1,5 @@
 {
-	"hud_lives_icon_slot20":  { "File": "interface.png", "Rect": "0,1,75,16", "Center": "0,0" },
+	"hud_lives_icon_slot20":  { "File": "interface.bmp", "Rect": "0,0,75,16", "Center": "0,0" },
 	"hud_bonus_icon_ExtraLife":  { "File": "interface.png", "Rect": "84,45,12,19", "Center": "0,0" },
 	"continue_icon_slot20":  { "File": "interface.png", "Rect": "32,15,20,28", "Center": "10,27" },
 	"monitor_icon_slot20":  { "File": "interface.png", "Rect": "0,1,16,16", "Center": "8,8" },

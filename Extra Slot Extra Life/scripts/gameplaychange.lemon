@@ -1,5 +1,4 @@
 global u8 EndLocation
-global u8 TDZSkip
 
 //-------------------------------------------------------//
 // STARTING LOCATIONS                                    //
@@ -13,6 +12,7 @@ function void fn0067ee()
     if (global.xtrachar != 20)
 	{
 		base.fn0067ee()
+		return
 	}
 
 	//AFFECTS ALL CHARS AS IT IS THE FLAG FOR THE RENDER OF EXTRA LIFE TOO
@@ -104,58 +104,15 @@ function void fn0067ee()
 		else
 		{
 			// Carnival Night Zone
-			bool spawnAITails = (global.characters == CHARS_SONIC_ALONE)	// Excluding Sonic & Tails
-			if (isMainCharacter(CHARACTER_SONIC))
-			{
-				extraLife.RENDERTAILS = true
-			}
-		#if STANDALONE
-			if (level.start_location == 1 && isMainCharacter(CHARACTER_KNUCKLES))
-			{
-				extraLife.RENDERTAILS = true
-				spawnAITails = true
-			}
-		#endif
-			if (spawnAITails)
-			{			
-				u32[0xffffb04a] = 0x01365c
-				u16[0xffffb05a] = u16[0xffffb010]
-				u16[0xffffb05e] = u16[0xffffb014]
-				tails.ai_routine = 0
-			}
-			else if (isMainCharacter(CHARACTER_TAILS))
-			{
-				//FALL IN AS MONITOR
-				//tails.ai_routine = 0x20
-				extraLife.STARTASBOX = true
-			}
-			else if (isMainCharacter(CHARACTER_KNUCKLES))
-			{
-				u32[0xffffb172] = 0x044a0c
-			}
+			//FALL IN AS MONITOR
+			//tails.ai_routine = 0x20
+			extraLife.STARTASBOX = true
 		}
 	}
 	else if (global.zone_act == 0x0500)
 	{
-		// IceCap Zone
-		if (isMainCharacter(CHARACTER_SONIC))
-		{
-			u32[0xffffb172] = 0x0396e4
-		}
-		else if (isMainCharacter(CHARACTER_TAILS))
-		{
-			u32[0xffffb172] = 0x039b66
-		}
-	#if STANDALONE
-		else if (isMainCharacter(CHARACTER_KNUCKLES))
-		{
-			if (level.start_location == 1)
-			{
-				// Use Tails' start
-				u32[0xffffb172] = 0x039b66
-			}
-		}
-	#endif
+		//Ice Cap Zone
+		u32[0xffffb172] = 0x039b66
 	}
 	else if (global.zone_act == 0x0600)
 	{
@@ -165,31 +122,11 @@ function void fn0067ee()
 	else if (global.zone_act == 0x0700)
 	{
 		// Mushroom Hill Zone
-		if (isMainCharacter(CHARACTER_KNUCKLES))
+		if (global.lock_on_state == 0)
 		{
-			objA1.state = char.state.FALLING_PANIC
-			objA1.flags2a |= char.flag.IN_AIR
-		}
-		else if (global.lock_on_state == 0)
-		{
-			// Add Tails
-			if (isMainCharacter(CHARACTER_SONIC))
-			{
-				extraLife.RENDERTAILS = true
-			}
-			if (global.characters == CHARS_SONIC_ALONE)
-			{				
-				u32[0xffffb04a] = 0x01365c
-				u16[0xffffb05a] = u16[0xffffb010]
-				u16[0xffffb05e] = u16[0xffffb014]
-				tails.ai_routine = 0
-			}
-			else if (isMainCharacter(CHARACTER_TAILS))
-			{
-				//FALL IN AS MONITOR
-				//tails.ai_routine = 0x20
-				extraLife.STARTASBOX = true
-			}
+			//FALL IN AS MONITOR
+			//tails.ai_routine = 0x20
+			extraLife.STARTASBOX = true
 		}
 	}
 	else if (global.zone_act == 0x0800)
@@ -207,20 +144,7 @@ function void fn0067ee()
 	else if (global.zone_act == 0x0900)
 	{
 		// Lava Reef Zone
-		if (global.characters != CHARS_KNUCKLES_ALONE)
-		{
-			objA1.state = char.state.FALLING_PANIC
-			objA1.flags2a |= char.flag.IN_AIR
-			if (u32[A2] != 0)
-			{
-				u8[A2 + 0x20] = char.state.FALLING_PANIC
-				u8[A2 + 0x2a] |= char.flag.IN_AIR
-			}
-		}
-		else
-		{
-			u32[0xffffb172] = 0x044a0c
-		}
+		u32[0xffffb172] = 0x044a0c
 	}
 	else if (global.zone_act == 0x0b00)
 	{
@@ -350,6 +274,11 @@ function void fn06c598()
 //# address-hook(0x07646e) end(0x076490)
 function void fn07646e()
 {
+	if (global.xtrachar != 20)
+	{
+		base.fn07646e()
+	}
+
 	objA0.update_address = 0x076492
 	A1 = 0xffffb04a
 	u8[A1 + 0x2e] = 0x81

@@ -151,6 +151,11 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 //# address-hook(0x009488) end(0x0094d2)
 function void fn009488()
 {
+	if (global.xtrachar != 20)
+	{
+		base.fn009488()
+		return
+	}
 	A1 = 0xffff0000 + objA0.value3e
 	objA0.position.x.u16 = objA1.position.x.u16
 	objA0.position.y.u16 = objA1.position.y.u16
@@ -192,6 +197,11 @@ function void fn009488()
 //# address-hook(0x0081c6) end(0x00858e)
 function void SpecialStage()
 {
+	if (global.xtrachar != 20)
+	{
+		base.SpecialStage()
+	}
+
 #if STANDALONE
 	playMusic(MUSIC_CTRL_FADEOUT)
 #else
@@ -249,7 +259,7 @@ function void SpecialStage()
 	for (u8 player = 0; player < getNumPlayers(); ++player)
 	{
 		u8 character = getPlayerCharacter(player)
-		u64 paletteKey = (character == CHARACTER_SONIC) ? "bluesphere_palette_sonic" : (XtraChar == 20) ? "bluesphere_palette_extraLife" : "bluesphere_palette_knuckles"
+		u64 paletteKey = stringformat("bluesphere_palette_extraLife_0%d", ExtraLifePalette)
 		u16 numColors = System.loadExternalPaletteData(paletteKey, 0, 0x800000, 0x20)
 		if (numColors > 0)
 		{
