@@ -4,7 +4,11 @@ function bool Standalone.drawCharacterSprite(u8 character, u8 variant, s16 px, s
 	//MILES AND HIS TAILS - Change render based on form is done in the main render process, here we add the custom animation
 	//it's AMAZING but there is a RENDERING BUG that sets the character to 2 during Sonic's cutscene in AIZ for a few frames and has it enter ExtraLife's rendering.
 	//as I'm stupid and I can't figure out why, I'll just force the normal render if AIZ and x less than 0x1200
-	if ((global.xtrachar == 20 && character == CHARACTER_TAILS && A0 == 0xffffb000)||(variant == 2))&&( global.zone_act != 0x0000||camera.position.x.u16 >0x1100 ) && extraLife.RENDERTAILS == false && char.state != 0x34  //NOT FROZEN IN ICZ REDESIGNED
+	if (extraLife.CARRYBOX) //render a lifebox for tails to carry
+	{
+		ExtraLifeCarriedAsBox(character, variant, px, py, asSmallGhost)
+	}
+	if (global.xtrachar == 20) || (global.xtrachar == 20) && (variant == 2) && (global.zone_act != 0x0000||camera.position.x.u16 >0x1100) && extraLife.RENDERTAILS == false && char.state != 0x34  //NOT FROZEN IN ICZ REDESIGNED
 	{//custom render routines
 		return ExtraLifeRendering(character, variant, px, py, asSmallGhost)
 	}
@@ -951,6 +955,45 @@ function bool ExtraLifeRendering(u8 character, u8 variant, s16 px, s16 py, bool 
 	return true
 }
 
+function void ExtraLifeCarriedAsBox (u8 character, u8 variant, s16 px, s16 py, bool asSmallGhost)
+{
+	u64 key
+	if (extraLifeFrameCounter < 2)
+	{
+		//force face right for the monitor to look right
+		char.flags &= ~char.flag.FACING_LEFT		// Make sure to face right
+		key = stringformat("extraLife_bored_2", 0)
+	}
+	else
+	{
+		key = stringformat("extraLife_bored_3", 0)
+	}										
+	if (extraLifeFrameCounter < 6)
+	{
+		extraLifeFrameCounter = extraLifeFrameCounter +1
+	}
+	if (extraLifeFrameCounter >= 6)
+	{ //repeat the cycle for the life box to flash
+		extraLifeFrameCounter = 0
+	}
+	//position...under tails if tails is flying, falling down if not
+
+	if (char.state >= 0x20 && char.state <= 0x23) //fly actions
+	{
+		extraLife.PX = px
+		extraLife.PY = py + 17
+		extraLife.velY = 0
+	}
+	else
+	{
+		//extraLife.PX no change on X
+		extraLife.velY = extraLife.velY +1
+		extraLife.PY = extraLife.PY + (extraLife.velY/15)
+	}
+	Renderer.drawCustomSprite(key, extraLife.PX, extraLife.PY, 0x00, 0, 0xa000 - char.sprite_priority +1)
+
+	return
+}
 
 function void updateSonicAnimationRunning()
 {

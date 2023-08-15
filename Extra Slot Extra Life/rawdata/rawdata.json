@@ -1,0 +1,5 @@
+{
+	"mgz2_char20_layout":	{ "File": "MGZ/Layout/2.bin" },
+	"mgz2_char20_objects":	{ "File": "MGZ/Object pos/2.bin" },
+	"mgz2_char20_rings":		{ "File": "MGZ/Rings/2.bin" }
+}

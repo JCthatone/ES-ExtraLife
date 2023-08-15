@@ -1,0 +1,8 @@
+function bool ExtraChar.LevelManager.EnableCustomLevels(u8 extrachar)
+{
+    if (global.xtrachar == 20)
+    // By default, custom levels are disabled for all extra characters
+    return true
+
+return base.ExtraChar.LevelManager.EnableCustomLevels(extrachar)
+}

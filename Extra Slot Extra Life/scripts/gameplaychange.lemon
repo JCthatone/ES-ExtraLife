@@ -143,7 +143,18 @@ function void fn0067ee()
 	}
 	else if (global.zone_act == 0x0900)
 	{
-		// Lava Reef Zone
+		// Lava Reef Zone 
+		if (global.characters != CHARS_KNUCKLES_ALONE)
+		{
+			objA1.state = char.state.FALLING_PANIC
+			objA1.flags2a |= char.flag.IN_AIR
+			if (u32[A2] != 0)
+			{
+				u8[A2 + 0x20] = char.state.FALLING_PANIC
+				u8[A2 + 0x2a] |= char.flag.IN_AIR
+			}
+		}
+		else
 		u32[0xffffb172] = 0x044a0c
 	}
 	else if (global.zone_act == 0x0b00)
@@ -239,7 +250,13 @@ function void fn01408a()
 //# address-hook(0x06c598) end(0x06c5c0)
 function void fn06c598()
 {
-	if (isMainCharacter(CHARACTER_TAILS))
+	if (global.xtrachar != 20)
+	{
+		base.fn06c598()
+		return
+	}
+
+	if (global.xtrachar == 20)
 	{
 		extraLife.CARRYBOX = true
 	}
