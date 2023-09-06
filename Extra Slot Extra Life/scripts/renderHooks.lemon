@@ -30,7 +30,7 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 	{
 		if (objA0.animation.sprite == 0x14 && global.xtrachar == 20 || objA0.animation.sprite == 0x15 && global.xtrachar == 20)	// Extra Life
 		{
-			Renderer.drawCustomSprite("slot20_text", px + 0x15, py + 0x8, 0x00, 0x40, renderQueue)
+			Renderer.drawCustomSprite("slot20_text", px, py, 0x00, 0x40, renderQueue)
 			return true
 		}
 	}
@@ -57,7 +57,7 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 			
 			if (objA0.animation.sprite == 0x14 || objA0.animation.sprite == 0x15)	// CHAOS
 			{
-				Renderer.drawCustomSprite("slot20_text", px + 0x15, py + 0x8, 0x00, 0x40, renderQueue)
+				Renderer.drawCustomSprite("slot20_text", px, py, 0x00, 0x40, renderQueue)
 				return true
 			}			
 		}
