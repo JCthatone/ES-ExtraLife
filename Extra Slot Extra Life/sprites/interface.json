@@ -16,5 +16,7 @@
 	"extraLifePose":  { "File": "interface.png", "Rect": "160,0,77,96", "Center": "37,53" },
 	"titlecard_orangebar":  { "File": "TitleCard_IrisBar.png", "Rect": "0,48,64,176", "Center": "0,0" },
 	"falling_extralife":  { "File": "falling.bmp", "Rect": "0,0,33,37", "Center": "16,18" },
-	"falling_superextralife":  { "File": "falling.bmp", "Rect": "43,0,33,37", "Center": "16,18" }
+	"falling_superextralife":  { "File": "falling.bmp", "Rect": "43,0,33,37", "Center": "16,18" },
+	"Joel_Super_text":  { "File": "interface.png", "Rect": "163,106,74,16", "Center": "0,0" },
+	"Joel_Hyper_text":  { "File": "interface.png", "Rect": "163,122,74,16", "Center": "0,0" }
 }
