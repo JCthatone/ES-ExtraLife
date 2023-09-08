@@ -1,0 +1,8 @@
+include ExtraLifeActionsAndFixes
+include ExtraLifeRendering
+include wallBreak
+include renderHooks
+include gameplaychange
+include char20
+include palettes
+include uniquelevels

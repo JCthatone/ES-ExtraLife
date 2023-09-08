@@ -1,0 +1,1396 @@
+// Extra Life
+// His secondary action is a charged directional dash mid air
+// Extra life can reroll from springs
+// No shield powers, no insta shield
+
+global u16 ExtraLife.MidairTimer //counts how long the player is in the aircharging
+global u8 ExtraLife.MaxRedash //max 3 times
+//a fast player can re-dash
+global s16 ExtraLife.vx
+global s16 ExtraLife.vy
+global bool ExtraLife.AirDash
+global bool ExtraLife.DashStart
+
+//--------
+//CONTROLS
+//--------
+function void Character.updateJumpMoves()
+{
+	//NEED TO CALL FOR TAILS IN MGZ AND THE INTROS?
+
+	//only extraLife, thanks!
+	if (global.xtrachar != 20)
+	{
+		base.Character.updateJumpMoves()
+		return
+	}
+	
+	u8 input_state     = control.tails.state
+	u8 input_pressed   = control.tails.pressed
+	bool isSuperActive = super.active.tails
+
+	if (char.jumping)
+	{		
+		// Limit velocity.y
+		s16 max_vy = (char.flags & char.flag.UNDERWATER) ? -0x200 : -0x400
+		if (char.velocity.y < max_vy && ExtraLife.MidairTimer == 0)
+		{
+			// Limit vertical velocity while not pressing any jump button and not having dashed
+			//  -> This is important to support low jumps by just tapping the button briefly
+			if ((input_state & CONTROL_ABC) == 0)
+			{
+				char.velocity.y = max_vy
+			}
+		}
+		else
+		{
+			if (char.double_jump_state == 0)
+			{
+				#if STANDALONE
+					if (Input.buttonPressed(BUTTON_Y) && !System.getGlobalVariableValueByName("original_mode"))
+					{
+						if (Mods.isModActive("Characters Go Super Then Hyper"))
+						{
+							if ((super.active == 0xff || super.active.tails == 0xff) == 0 && char.invuln.countdown == 0)	// Check invulnerability to prevent spamming of super activate + cancel
+							{
+								if (global.chaos_emeralds >= 7 && global.traded_emeralds == 0 && (super.active == 1 || super.active.tails == 1))
+								{
+									char.jumping = 0
+									return
+								}
+								if (Character.performSuperTransformation())
+								{
+									char.jumping = 0
+									return
+								}
+							}
+						}
+						else
+						{
+							if (!isSuperActive && char.invuln.countdown == 0)	// Check invulnerability to prevent spamming of super activate + cancel
+							{
+								if (Character.performSuperTransformation())
+									return
+							}
+						}
+					}
+					// if Input.buttonPressed(BUTTON_Y)
+					// {
+					// 	if (!isSuperActive && char.invuln.countdown == 0)	// Check invulnerability to prevent spamming of super activate + cancel
+					// 	{
+					// 		if (Character.performSuperTransformation())
+					// 			return
+					// 	}
+					// }
+				#endif
+            
+				// Check if pressed jump again in mid-air
+				if (input_pressed & CONTROL_ABC)
+				{
+					//EXTRA LIFE HAS A DIRECTIONAL - MID AIR LIKE drop dash
+					//SLOWDOWN GRAVITY WHEN BUTTON HELD?
+					//FIRST CHECK: AI OR PLAYER?
+					if (tails.control_counter > 0|| global.xtrachar == 20) // player
+					{
+						char.double_jump_state = 1							
+					}
+					else
+					{ //AI - Dependant ExtraLife - do not use skills
+						//nothing to do here
+						return
+					}
+					
+				}
+			}
+			else if (!competition_mode.active && ExtraLife.MaxRedash < 3) //ExtraLife AI should never attempt a dropdash 
+			{//EXTRALIFE'S DASH IS HELD IN AIR, unrelated to setting dropdash
+				ExtraLifePressedJumpInMidAir()
+				return
+			}
+		}
+	}
+	else
+	{
+		if (char.spindash == 0)
+		{
+			char.velocity.y = max(char.velocity.y, -0x0fc0)
+		}
+	}
+}
+
+function void ExtraLifePressedJumpInMidAir()
+{
+	// Handle air dash for Extra Life
+	//  -> charge when held
+	if (control.player1.state & CONTROL_ABC)
+	{		
+		if (ExtraLife.AirDash == false)
+		{ //start airdash
+			ExtraLife.AirDash = true			
+			//char.state = char.state.SONIC_DROPDASH
+			Audio.playAudio("dropdash_charge", AudioContext.CONTEXT_SOUND)		
+			//air control should be restored when the direction can be chosen, not after
+			// Remove control lock
+			char.flags &= ~char.flag.CONTROL_LOCK
+		}
+		//HOLD IN MIDAIR -- ALLOW AIMING					
+		if (ExtraLife.AirDash == true)
+		{
+			char.velocity.y = 0
+			char.velocity.x = 0
+		}
+		if (ExtraLife.MidairTimer < 60) //This determines if they can re-launch
+		{
+			ExtraLife.MidairTimer = ExtraLife.MidairTimer + 1
+		}
+		else // charged for too long, fall
+		{			
+			char.jumping = 0
+			ExtraLife.MidairTimer = 0
+			ExtraLife.AirDash = false
+			char.state = char.state.ROLLING
+			Audio.playAudio(0x51, AudioContext.CONTEXT_SOUND)
+		}
+		return
+	}
+	else if (ExtraLife.AirDash == true)
+	{//propell Extra Life if it was fully charged
+				
+		//&& global.super_emeralds == 7
+		if (super.active.tails & 0x80 && ExtraLife.MaxRedash < 1)	// Hyper - flash only on the first dash
+		{
+			//NEEDS A FLASH
+			Character.ClearEnemiesOnScreen()
+			global.whiteflash_timeout = 4
+		}
+		//camera.locktime.player1 = 0x2000 I don't want a screen lock
+		//ClearPositionBackup()
+
+		//char.double_jump_state = 1
+		//u8[0xffffcd9c] = 1
+
+		playSound(SFX_SPINDASH_RELEASE)
+
+		u8 input = control.player1.state & 0x0f	// Only directions
+		if (input != 0 && input < 0x0b)		// Not left and right at the same time
+		{
+			// Speed based on direction held
+			//diagonal 05A8
+			if (control.player1.state & CONTROL_UP)
+			{
+				ExtraLife.vy = -0x800
+				ExtraLife.vx = 0
+				if (control.player1.state & CONTROL_RIGHT)
+				{
+					ExtraLife.vy = -0x5a8
+					ExtraLife.vx = 0x5a8
+				}
+				if (control.player1.state & CONTROL_LEFT)
+				{
+					ExtraLife.vy = -0x5a8
+					ExtraLife.vx = -0x5a8
+				}
+				
+			}
+			else if (control.player1.state & CONTROL_DOWN)
+			{
+				//ExtraLife.vy = (control.player1.state & CONTROL_RIGHT) ? 0x5a8 : (control.player1.state & CONTROL_LEFT) ? 0x5a8 : 0x800
+				//ExtraLife.vx = (control.player1.state & CONTROL_RIGHT) ? 0x5a8 : (control.player1.state & CONTROL_LEFT) ? -0x5a8 : 0
+				ExtraLife.vy = 0x800
+				ExtraLife.vx = 0
+				if (control.player1.state & CONTROL_RIGHT)
+				{
+					ExtraLife.vy = 0x5a8
+					ExtraLife.vx = 0x5a8
+				}
+				if (control.player1.state & CONTROL_LEFT)
+				{
+					ExtraLife.vy = 0x5a8
+					ExtraLife.vx = -0x5a8
+				}
+			}
+			else //no button
+			{
+				ExtraLife.vy = 0
+				ExtraLife.vx = (char.flags & char.flag.FACING_LEFT) ? -0x800 : 0x800
+			}
+			char.velocity.x  = ExtraLife.vx
+			char.velocity.y  = ExtraLife.vy
+			char.groundspeed = ExtraLife.vx
+		}
+		else // no button, horizontal direction the char is facing
+		{
+			ExtraLife.vx = (char.flags & char.flag.FACING_LEFT) ? -0x800 : 0x800
+			char.velocity.x = ExtraLife.vx
+			char.velocity.y = 0
+			char.groundspeed = ExtraLife.vx
+		}
+		//half speed if underwater
+		if (char.flags & char.flag.UNDERWATER) 
+		{
+			char.velocity.x  = char.velocity.x / 2
+			char.velocity.y  = char.velocity.y / 2
+			char.groundspeed = char.groundspeed / 2
+		}
+		//determine if the character can re-dash
+		if (ExtraLife.MidairTimer < 60)
+		{
+			char.double_jump_state = 0
+			ExtraLife.MaxRedash = ExtraLife.MaxRedash +1				
+		}
+		else
+		{
+			char.jumping = 0
+			ExtraLife.MaxRedash = 0
+			ExtraLife.MidairTimer = 0
+		}
+		ExtraLife.AirDash = false
+		ExtraLife.DashStart = true
+		char.state = char.state.ROLLING		
+		return
+	}
+	else if (ExtraLife.AirDash)
+	{
+		// Abort drop dash
+		ExtraLife.AirDash = false
+		ExtraLife.MidairTimer = 0
+		ExtraLife.MaxRedash = 0
+		char.state = char.state.ROLLING
+		return
+	}
+}
+
+
+
+//# address-hook(0x0137c4) end(0x0138f4)
+function void Character.UpdateNormalState.Tails()
+{
+	if (global.xtrachar != 20)
+	{
+		base.Character.UpdateNormalState.Tails()
+		return
+	}
+
+
+	if (updateDebugModeInput(true))
+		return
+		
+	if (A0 == 0xffffb000)
+	{
+		// Tails is the main player
+		if (player1.control_override == 0)
+		{
+			control.tails = control.pad1
+			control.player1 = control.pad1
+			if (tails.ai_routine >= 0x1a && competition_mode.active == 0)
+			{
+				Character.TailsAI.Update()
+			}
+		}
+		else
+		{
+			control.tails = control.player1
+		}
+	}
+	else
+	{
+		// Tails is the second player
+		if (player2.control_override == 0)
+		{
+			control.tails = control.player2
+		}
+
+		if (player2.control_override >= 0 && competition_mode.active == 0)
+		{
+			Character.TailsAI.Update()
+		}
+	}
+
+	if (char.control_flags & 0x01)
+	{
+		// Character is not directly controllable (but may be indirectly via an object, like when hanging on a pole or similar)
+		char.double_jump_state = 0
+		if (tails.carrying)
+		{
+			A1 = 0xffffb000
+			objA1.flags2a |= char.flag.IN_AIR
+			u8[A1 + 0x2e] = 0
+			tails.carrying = 0
+			tails.catch_timeout = 0
+		}
+	}
+	else
+	{
+		// Call update function depending on flags
+		pushA456()
+		if (char.flags & char.flag.IN_AIR)
+		{
+			if (char.flags & char.flag.ROLLING)
+				Character.UpdateTailsRollingInAir()
+			else
+				Character.UpdateTailsUprightInAir()
+		}
+		else
+		{
+			if (char.flags & char.flag.ROLLING)
+				Character.UpdateTailsRollingOnGround()
+			else
+				Character.UpdateTailsUprightOnGround()
+		}
+		popA456()
+	}
+//HANDLE AIRDASH HERE, add player 1 as tails and check the form, as this interferes with flight timer.
+	if (A0 == 0xffffb000 && !competition_mode.active && (char.flags & char.flag.IN_AIR) == 0)
+	{
+		// Abort drop dash (e.g. when jumping on a spring)
+		ExtraLife.AirDash = false
+		ExtraLife.MidairTimer = 0
+		ExtraLife.MaxRedash = 0
+	}
+	
+	
+	
+	if (level.vertical_wrap == 0xff00)
+	{
+		char.position.y.u16 &= level.height.bitmask
+	}
+
+	Character.updateBonusEffects()
+	Character.UpdateRingsInSuperForm()
+	Character.WriteToPositionBackup()
+	Character.checkForWaterSurface()
+
+	char.angle_sensor_1 = u8[0xfffff768]
+	char.angle_sensor_2 = u8[0xfffff76a]
+
+	if (u8[0xfffff7c9] != 0)
+	{
+		if (char.state == 0)
+			char.state = char.state.former
+	}
+
+	if ((char.control_flags & 0x02) == 0)	// Hanging flag
+	{
+		UpdateTailsAnimation()
+		if (global.inv_gravity)
+		{
+			char.render_flags ^= render_flag.FLIP_Y
+		}
+		UpdateTailsSpritePatterns()
+	}
+
+	if ((char.control_flags & 0xa0) == 0)
+	{
+		Character.CheckCollisionsWithDynamicObjects()
+	}
+}
+
+
+
+function void Character.updateUprightOnGround() //Extra Life can peelout
+{
+	if (global.xtrachar != 20)
+	{
+		base.Character.updateUprightOnGround()
+		return
+	}
+	
+	ExtraLife.MidairTimer = 0
+	ExtraLife.MaxRedash = 0
+	
+	if (Character.UpdateSpindash())
+		return
+
+#if STANDALONE
+
+	if ((global.xtrachar == 20) && Game.getSetting(SETTING_SUPER_PEELOUT))
+	{
+		if (Character.updateSuperPeelout())
+			return
+	}
+	
+#endif
+
+	if (Character.CheckStartJump())
+		return
+
+	Character.UpdateUprightSlopeEffect()
+	Character.updateUprightOnGroundInner()
+	Character.CheckForStartRolling()
+
+	Character.sharedUpdateOnGround()
+}
+
+//----------
+//COLLISIONS
+//----------
+
+//# address-hook(0x01021e) end(0x010288)
+function void Character.OnThreatCollision()
+{
+	if (global.xtrachar != 20)
+	{
+		base.Character.OnThreatCollision()
+		return
+	}
+
+	// Check for shield or invincibility
+	D0.u8 = char.bonus_effect & 0x73
+	if (D0.u8 != 0)
+	{
+		D0.u8 &= u8[A1 + 0x2b]
+		if (D0.u8 != 0)
+		{
+			D0 = 0xffffffff
+			return
+		}
+
+		if ((char.bonus_effect & char.bonus.ANY_SHIELD) == 0)
+		{
+			if ((char.bonus_effect & char.bonus.INVINCIBLE) == 0)
+			{
+				Character.OnThreatCollisionInner()
+			}
+			D0 = 0xffffffff
+			return
+		}
+	}
+	else
+	{
+		// Extra life is basically a regular char, he can deflect during his special move
+		bool canDeflect = (char.double_jump_state == 1)
+
+//Extra Life is replaced by Tails in MGZ Boss:
+		// Deflect only projectiles that are above him if flying
+		if (char.state == char.state.TAILS_FLYDOWN || char.state == char.state.TAILS_FLYUP || char.state == char.state.TAILS_CARRYDOWN || char.state == char.state.TAILS_CARRYUP) //(char.character == CHARACTER_TAILS)
+		{
+			canDeflect = (s16(objA1.position.y.u16) < s16(objA0.position.y.u16))
+		}
+
+		if (!canDeflect)
+		{
+			Character.OnThreatCollisionInner()
+			return
+		}
+	}
+
+	if ((u8[A1 + 0x2b] & 0x08) == 0)
+	{
+		if ((char.bonus_effect & char.bonus.INVINCIBLE) == 0)
+		{
+			Character.OnThreatCollisionInner()
+		}
+	}
+	else
+	{
+		deflectProjectile()
+	}
+	D0 = 0xffffffff
+}
+
+//# address-hook(0x010294) end(0x010364)
+function void Character.GettingHurt()
+{
+	
+	if (global.xtrachar != 20)
+	{
+		base.Character.GettingHurt()
+		return
+	}
+
+	bool canLoseShield = true	// Usually true, gets false e.g. for 2nd player Tails
+	bool isProtectedByObject = ((char.protection_flag & 0x80) != 0)
+	bool spilledRings = false
+
+	u16 rings = ring_counter
+	if (A0 != 0xffffb000)
+	{
+		// It's the second player
+		if (competition_mode.active)
+		{
+			rings = u16[0xfffffed0]
+		}
+		else
+		{
+			canLoseShield = false
+		}
+	}
+
+	if (canLoseShield && (char.bonus_effect & char.bonus.ANY_SHIELD) == 0)
+	{
+		if (!isProtectedByObject)
+		{
+			// No more rings?
+			if (rings == 0)
+			{
+				D0 = getSoundIdByObstacleAddress(u32[A2])
+				Character.Die_internal()
+				return
+			}
+
+			// Create ring spill object
+			if (allocDynamicObjectStd())
+			{
+				objA1.update_address = 0x01a64a
+				objA1.position.x.u16 = char.position.x.u16
+				objA1.position.y.u16 = char.position.y.u16
+				u16[A1 + 0x3e] = A0.u16
+			}
+			spilledRings = true
+
+			// Should be unnecessary, but make sure all shield flags are cleared
+			char.bonus_effect &= 0x8e
+		}
+	}
+	else
+	{
+	#if STANDALONE
+		// When using e.g. the MGZ spinning top, do not lose your shield
+		if (!isProtectedByObject)
+	#endif
+		{
+			// Lose shield
+			char.bonus_effect &= 0x8e
+		}
+	}
+
+	char.base_state = 0x04
+	Character.LandingOnGroundNoSpindash()
+	char.flags |= char.flag.IN_AIR
+	if (char.flags & char.flag.UNDERWATER)
+	{
+		char.velocity.x = -0x100
+		char.velocity.y = -0x200
+	}
+	else
+	{
+		char.velocity.x = -0x200
+		char.velocity.y = -0x400
+	}
+	if (char.position.x.u16 >= u16[A2 + 0x10])
+	{
+		char.velocity.x = -char.velocity.x
+	}
+
+	char.groundspeed = 0
+	char.state = char.state.GOT_HURT
+	char.invuln.countdown = 120
+
+#if STANDALONE
+	if (global.characters == CHARS_TAILS_ALONE) 
+	{
+		// Reset drop dash
+		ExtraLife.AirDash = false
+		ExtraLife.MidairTimer = 0
+		ExtraLife.MaxRedash = 0
+	}
+
+	// In standalone, don't play the sound when rings got spilled
+	//  -> This check is not necessary in emulation, as the ring spill sound kills this one (only one of both can be played)
+	if (!spilledRings)
+#endif
+	{
+		playSound(getSoundIdByObstacleAddress(u32[A2]))
+	}
+	D0 = 0xffffffff
+}
+
+
+//Tails tweaks and fixes based on Ray's Mod by campbellsonic
+// ExtraLife has larger hitbox
+function void Character.Initialization.shared(u8 character)
+{
+	if (global.xtrachar != 20)
+	{
+		base.Character.Initialization.shared(character)
+		return
+	}
+	
+	char.base_state += 2
+	char.character = character
+	
+	//Tails check removed (15)
+	u8 characterHeight = 19
+	char.hitbox_extends.x = 9
+	char.hitbox_extends.y = characterHeight
+	char.hitbox.default.x = 9
+	char.hitbox.default.y = characterHeight
+
+	if (character == CHARACTER_SONIC)
+	{
+		char.mapping_offset = 0x146620
+	}
+	else if (character == CHARACTER_TAILS)
+	{
+		char.mapping_offset = 0x148eb8
+	}
+	else  // character == CHARACTER_KNUCKLES
+	{
+		char.mapping_offset = 0x14a8d6
+	}
+
+	char.sprite_priority = 0x100
+	char.box_size.x = 0x18
+	char.box_size.y = 0x18
+	char.render_flags = render_flag.WORLD
+	if (character == CHARACTER_TAILS)
+		char.render_flags |= render_flag.VISIBLE
+
+	setSpeedCapProperties(A4, false)
+
+	u8[A0 + 0x30] = 0
+	u8[A0 + 0x31] = 4
+	char.drown_countdown = 30
+
+	if (character == CHARACTER_TAILS)
+	{
+		if (global.characters == CHARS_TAILS_ALONE)
+		{
+			if (checkpoint.number == 0)
+			{
+				char.sprite_attributes = 0x06a0
+				char.layer_flags1 = 0x0c
+				char.layer_flags2 = 0x0d
+
+				if (global.stage_type != 2)
+				{
+					checkpoint.x = char.position.x.u16
+					checkpoint.y = char.position.y.u16
+					checkpoint.sprite_attr = char.sprite_attributes
+					checkpoint.layer_flags = char.layer_flags
+				}
+			}
+		}
+		else
+		{
+			char.sprite_attributes = 0x06a0 | (u16[0xffffb00a] & 0x8000)
+			u16[A0 + 0x46] = u16[0xffffb046]
+		}
+
+		super.active.tails = 0
+
+		if (tails.ai_routine != 0x12 && tails.ai_routine != 0x20)
+			tails.ai_routine = 0
+
+		tails.control_counter = 0
+		tails.respawn_counter = 0
+
+		// Init Tails' tails object
+		u32[0xffffcc0a] = 0x0160a6
+		u16[0xffffcc3a] = A0.u16
+
+		u8[0xfffff746] = checkpoint.number
+	}
+	else
+	{
+		if (checkpoint.number == 0)
+		{
+			char.sprite_attributes = 0x0680
+			char.layer_flags1 = 0x0c
+			char.layer_flags2 = 0x0d
+
+			if (global.stage_type != 2)
+			{
+				checkpoint.x = char.position.x.u16
+				checkpoint.y = char.position.y.u16
+				checkpoint.sprite_attr = char.sprite_attributes
+				checkpoint.layer_flags = u16[A0 + 0x46]
+			}
+		}
+
+		super.active = 0
+
+		char.position.x.u16 -= 0x20
+		char.position.y.u16 += 4
+		ClearPositionBackup()
+		char.position.x.u16 += 0x20
+		char.position.y.u16 -= 4
+	}
+}
+
+//Spindash slope fix
+//Fix Tails's spindash on slopes with larger hitbox
+//Every time the form isn't Tails
+function void releaseSpindash()
+{
+	if (global.xtrachar != 20)
+	{
+		base.releaseSpindash()
+		return
+	}
+	
+	// Release spindash!
+	char.hitbox_extends.x = 7
+	char.hitbox_extends.y = 14
+	char.state = char.state.ROLLING
+	char.flags |= char.flag.ROLLING
+	char.spindash = 0
+
+	u32 baseAddress
+	s8 dy = 5
+	if (char.character != CHARACTER_TAILS)
+	{
+		baseAddress = (super.active) ? 0x011d04 : 0x011cf2
+	}
+	else
+	{
+		baseAddress = (super.active.tails) ? 0x015320 : 0x01530e
+		//	dy = 1 <--- tails property not needed
+	}
+	D0 = u16(char.spindash_charge >> 8) * 2
+	char.groundspeed = s16[baseAddress + D0]
+
+	char.position.y.u16 += (global.inv_gravity) ? -dy : dy
+
+	D0.u16 = (char.groundspeed - 0x800) * 2
+	D0.u16 = 0x2000 - (D0.u16 & 0x1f00)
+
+	// Camera delay
+	if (A0 == 0xffffb000)
+	{
+	#if STANDALONE
+		// This does not hurt
+		ClearPositionBackup()
+	#endif
+		camera.locktime.player1 = D0.u16
+	}
+	else
+	{
+		camera.locktime.player2 = D0.u16
+	}
+
+	if (char.flags & char.flag.FACING_LEFT)
+	{
+		char.groundspeed = -char.groundspeed
+	}
+	
+	// Tell dust cloud object to disappear again
+	u8[A6 + 0x20] = 0
+
+	playSound(SFX_SPINDASH_RELEASE)
+}
+
+// Placement of spindash dust
+//# address-hook(0x018c20) end(0x018c82)
+function void fn018c20()
+{
+	if (global.xtrachar != 20)
+	{
+		base.fn018c20()
+		return
+	}
+
+	// The first check is against "sonic.drown_countdown"
+	//  -> Deactivate this while the drown countdown is shown, because the digits use the same VRAM as this effect here
+	if (u8[A2 + 0x2c] < 12 || u8[A2 + 0x05] >= 4)
+	{
+		objA0.state = 0
+		return
+	}
+
+	// Check if not spindashing any more
+	if (u8[A2 + 0x3d] == 0 || u8[A2 + 0x3d] & 0x80)
+	{
+		// Play rest of animation for the drop dash...
+		//  -> Except if rolling state stopped suddenly, usually because of an interaction with the object Sonic landed on, e.g. the SSZ spinning disc
+		//  -> Unfortunately, this does not prevent the dust cloud from being visible for one frame in some cases
+		if (objA0.animation.frame == 0x07 || u8[A2 + 0x20] != char.state.ROLLING)
+		{
+			objA0.state = 0
+			return
+		}
+	}
+	else
+	{
+		objA0.position.x.u16 = u16[A2 + 0x10]
+		//like all other chars
+			objA0.position.y.u16 = u16[A2 + 0x14] + 4 
+		
+		objA0.flags2a = u8[A2 + 0x2a] & char.flag.FACING_LEFT
+	}
+
+	D1 = 4
+	if (global.inv_gravity)
+	{
+		objA0.flags2a |= 0x02
+		D1.s16 = -D1.s16
+	}
+	if (objA0.flags38 != 0)
+	{
+		objA0.position.y.u16 -= D1.u16
+	}
+
+	if (objA0.state.former == 0)
+	{
+		if (u16[A2 + 0x0a] & 0x8000)
+			objA0.sprite_attributes |= 0x8000
+		else
+			objA0.sprite_attributes &= 0x7fff
+	}
+	fn018c94()
+}
+
+// Placement of spindash dust upside down
+//# address-hook(0x018b54) end(0x018ba4)
+function void fn018b54()
+{
+	if (A0 == 0xffffcc54)
+	{
+		base.fn018b54()
+		return
+	}
+	
+	objA0.base_state += 2
+	objA0.mapping_offset = 0x018df4
+	objA0.render_flags |= render_flag.WORLD
+	objA0.sprite_priority = 0x80
+	objA0.box_size.x = 0x10
+	objA0.sprite_attributes = 0x07e0
+	objA0.value42 = 0xb000
+	u16[A0 + 0x40] = 0xfc00
+
+	if (A0 != 0xffffcc54)
+	{
+		// Effect object for Tails
+		//objA0.flags38 = 1
+		if (global.characters != CHARS_TAILS_ALONE)
+		{
+			objA0.sprite_attributes = 0x07f0
+			objA0.value42 = 0xb04a
+			u16[A0 + 0x40] = 0xfe00
+		}
+	}
+
+	fn018baa()
+}
+
+// Prevent Hydrocity hand launchers from reverting Chaos's hitbox back to Tails's size
+function void fn030cf8()
+{
+	if (u8[A1 + 0x38] != CHARACTER_TAILS)
+	{
+		base.fn030cf8()
+		return
+	}
+	
+	u8 bit = (1 << D6.u8)
+
+#if STANDALONE
+	// Bug fix: If character gets hurt, don't launch him
+	if (u8[A1 + 0x05] != 0x02)
+	{
+		u8[A0 + 0x35] &= ~bit
+		if (u8[A0 + 0x35] == 0)
+		{
+			u8[A0 + 0x34] = 0
+		}
+	}
+#endif
+
+	if (u8[A0 + 0x35] & bit)
+	{
+		if (D0.u8 & CONTROL_ABC)
+		{
+			u8[A0 + 0x35] &= ~bit
+			objA0.flags2a &= ~bit
+			objA1.velocity.x = (objA0.flags2a & 0x01) ? -0x800 : 0x800
+			objA1.velocity.y = -0x400
+			s16[A1 + 0x1c] = objA1.velocity.x
+			u8[A1 + 0x2e] = 0
+			u8[A1 + 0x2a] &= ~0x08
+			u8[A1 + 0x2a] |= 0x02
+			if (u8[A0 + 0x35] == 0)
+			{
+				u8[A0 + 0x34] = 0
+			}
+		}
+		return
+	}
+
+	if (objA0.flags2a & bit)
+	{
+		if (u8[A0 + 0x34] == 0)
+		{
+			D0.u16 = objA1.position.x.u16 - objA0.position.x.u16 + 8
+			if (D0.u16 >= 0x10)
+				return
+		}
+
+		if (u8[A1 + 0x2e] == 0 && debug_mode.state == 0)
+		{
+			u8[A0 + 0x35] |= bit
+
+			playSound(0x3c)
+
+			u8[A1 + 0x20] = 0
+			//check for size
+			u8[A1 + 0x1e] = (false) ? 0x0f : 0x13 //(u32[A1] == 0x01365c) ? 0x0f : 0x13
+			u8[A1 + 0x1f] = 0x09
+			u8[A1 + 0x2a] &= ~0x01
+			u8[A1 + 0x2a] &= ~0x04
+			u8[A1 + 0x2a] &= ~0x20
+			u8[A1 + 0x2e] = 1
+			objA1.position.x.u16 = objA0.position.x.u16 - 2
+			u16[A1 + 0x1c] = 0x1000
+			if (objA0.flags2a & 0x01)
+			{
+				objA1.position.x.u16 += 4
+				s16[A1 + 0x1c] = -s16[A1 + 0x1c]
+				u8[A1 + 0x2a] |= 0x01
+			}
+			u8[A0 + 0x34] = 1
+		}
+	}
+}
+
+//CUTSCENES
+// Fix camera placement when for larger hitbox for all walk-in zone transitions
+//# address-hook(0x044a26) end(0x044a62)
+function void fn044a26()
+{
+	if (u8[0xffffb038] != CHARACTER_TAILS)
+	{
+		base.fn044a26()
+		return
+	}
+	
+	player1.control_override = 1
+	control.player1 = 0x0800
+	u8[0xfffff676] = 1			// Forces camera to a certain position
+	u16[0xfffff678] = u16[A0 + 0x30]
+	u16[0xfffff67c] = objA0.value32
+	
+	if (false)//(u8[0xffffb038] == CHARACTER_TAILS)
+	{
+		u16[0xfffff67c] -= 0x0004	// This is not the best way to do this but I can't be bothered to find where objA0.value32 is being set
+	}
+
+	D0.u16 = u16[0xffffb010] + 0x10
+	if (D0.u16 < u16[A0 + 0x30])
+		return
+
+	player1.control_override = 0
+	player2.control_override = 0
+	UnloadObject()
+}
+
+
+// Another DEZ Act transition fix depending on form
+//# address-hook(0x07e44c) end(0x07e4a0)
+function void fn07e44c()
+{
+	if (global.xtrachar != 20)
+	{
+		base.fn07e44c()
+		return
+	}
+	
+	UpdateMovementSimple()
+	if (objA0.velocity.y >= 0)
+	{
+		//Handle Form	
+		//D0.u16 = /*(global.characters != CHARS_TAILS_ALONE) ?*/ 0x03ac //: 0x03b0
+		D0.u16 = (false) ? 0x03ac : 0x03b0
+		if (objA0.position.y.u16 >= D0.u16)
+		{
+			objA0.position.y.u16 = D0.u16
+			objA0.update_address = 0x07e4a2
+			objA0.countdown_value = 119
+
+			if (allocDynamicObjectStd())
+			{
+				// Show title card for act 2
+				objA1.update_address = 0x02d690
+				u8[A1 + 0x3e] = 0xff
+			}
+		}
+	}
+
+	A1 = 0xffffb000
+	objA1.position.x.u16 = objA0.position.x.u16
+	objA1.position.y.u16 = objA0.position.y.u16
+}
+
+
+// DEZ "Act 3" intro cutscene depending on last form
+//# address-hook(0x07fe06) end(0x07fe2a)
+function void fn07fe06()
+{
+	if (global.xtrachar != 20)
+	{
+		base.fn07fe06()
+		return
+	}
+	
+	u8[A1 + 0x2e] = 0x81
+	u8[A1 + 0x20] = 0
+	objA1.velocity.x = 0x0600
+	u16[A1 + 0x1c] = 0x0600
+	//if (u8[A1 + 0x38] == 0x01)
+	if (false)
+	{
+		objA1.position.y.u16 += 4
+	}
+}
+
+
+
+//-------------------
+// ASSIST WAS HERE BUT I REMOVED IT
+
+
+//REGULAR SPAWN IN IN A SONIC GAME
+// Extra life should not be visible until it reaches normal status (06)
+//# address-hook(0x013bf8) end(0x013d48)
+function void fn013bf8()
+{	
+	// Tails AI flying in after respawn
+	if (objA0.render_flags & render_flag.VISIBLE)
+	{
+		extraLife.SPAWNINGIN = true
+		tails.flight_countdown = 0xf0
+		char.flags |= char.flag.IN_AIR
+		UpdateTailsFlight_innerB()
+		tails.respawn_counter = 0
+	}
+	else
+	{
+		++tails.respawn_counter
+	#if STANDALONE
+		if (tails.respawn_counter >= 300 || (Input.buttonPressed(BUTTON_Y | BUTTON_PAD2) && tails.ai_routine == 0x06))
+	#else
+		if (tails.respawn_counter >= 300)
+	#endif
+		{
+			tails.respawn_counter = 0
+			tails.ai_routine = 0x02
+			char.control_flags = 0x81
+			char.flags = char.flag.IN_AIR
+			char.position.x.u16 = 0
+			char.position.y.u16 = 0
+			tails.flight_countdown = 0xf0
+			UpdateTailsFlight_innerB()
+			return
+		}
+	}
+
+	D3.u8 = posbackup.offset.player1 - 0x44
+	tails.flight_target.x = u16[0xffffe500 + D3.u8]
+	tails.flight_target.y = u16[0xffffe500 + D3.u8 + 2]
+	D0.u16 = char.position.x.u16 - tails.flight_target.x
+	if (D0.u16 != 0)
+	{
+		D2.u16 = min(abs(D0.s16) >> 4, 12)
+		D1.u8 = abs(s8[A1 + 0x18])
+		D2.u8 += D1.u8 + 1
+		if (D0.s16 >= 0)
+		{
+			char.flags |= char.flag.FACING_LEFT
+			if (D2.u16 >= D0.u16)
+			{
+				D2.u16 = D0.u16
+				D0 = 0
+			}
+			D2.s16 = -D2.s16
+		}
+		else
+		{
+			char.flags &= ~char.flag.FACING_LEFT
+			D0.s16 = -D0.s16
+			if (D2.u16 >= D0.u16)
+			{
+				D2.u8 = D0.u8
+				D0 = 0
+			}
+		}
+		char.position.x.u16 += D2.u16
+	}
+
+	D1.s16 = char.position.y.u16 - tails.flight_target.y
+	if (D1.s16 != 0)
+	{
+		s16 dy = D1.s16
+	#if STANDALONE
+		// Consider vertical level wrap
+		if (level.vertical_wrap == 0xff00)
+		{
+			dy &= level.height.bitmask
+			if (dy > level.height.bitmask / 2)
+				dy -= (level.height.bitmask + 1)
+		}
+	#endif
+		char.position.y.u16 += (dy > 0) ? -1 : 1
+	}
+
+	D2.u8 = u8[0xffffe400 + D3.u8 + 2] & 0x80
+	if (D2.u8 == 0)
+	{
+		D1.u16 |= D0.u16
+		if (u8[0xffffb005] < 0x06)
+		{
+			bool gainControlNow = false
+		#if STANDALONE
+			// Allow for pressing a jump button to gain control over Tails at once
+			gainControlNow = (control.tails.pressed & CONTROL_ABC)
+		#endif
+
+			if (D1.u16 == 0 || gainControlNow)
+			{
+				//appear and make smoke + sound
+				extraLife.SPAWNINGIN = false
+				extraLife.Monitor = 1
+				
+				tails.ai_routine = 0x06
+				char.control_flags = 0
+				char.state = char.state.RUNNING
+				char.velocity.x = 0
+				char.velocity.y = 0
+				char.groundspeed = 0
+				char.flags &= char.flag.UNDERWATER
+				char.flags |= char.flag.IN_AIR
+				char.hlock_countdown = 0
+				char.sprite_attributes = (char.sprite_attributes & 0x7fff) | (objA1.sprite_attributes & 0x8000)
+				char.layer_flags1 = u8[A1 + 0x46]
+				char.layer_flags2 = u8[A1 + 0x47]
+
+				if (gainControlNow)
+				{
+					// Roll instead
+					char.state = char.state.ROLLING
+				}
+				return
+			}
+		}
+	}
+	char.control_flags = 0x81
+}
+
+//NO SOUND IF EXTRA LIFE IS BUSY FLYING IN INVISIBLE
+//# address-hook(0x0148ac)
+function void UpdateTailsFlight_innerB()
+{
+	if (char.flags & char.flag.UNDERWATER)
+	{
+		// Swimming
+		if (tails.flight_countdown == 0)
+		{
+			char.state = char.state.TAILS_SWIMTIRED
+		}
+		else if (tails.carrying)
+		{
+			char.state = char.state.TAILS_SWIMCARRY
+		}
+		else
+		{
+			char.state = (char.velocity.y < 0) ? char.state.TAILS_SWIMUP : char.state.TAILS_SWIMDOWN
+		}
+	}
+	else
+	{
+		// Flying
+		if (competition_mode.active)
+		{
+			char.state = char.state.TAILS_FLYDOWN
+		}
+		else
+		{
+			if (tails.flight_countdown == 0)
+			{
+				char.state = char.state.TAILS_FLYTIRED
+			}
+			else if (tails.carrying)
+			{
+				char.state = (char.velocity.y < 0) ? char.state.TAILS_CARRYUP : char.state.TAILS_CARRYDOWN
+			}
+			else
+			{
+				char.state = (char.velocity.y < 0) ? char.state.TAILS_FLYUP : char.state.TAILS_FLYDOWN
+			}
+		}
+
+		if (objA0.render_flags & render_flag.VISIBLE) && (extraLife.SPAWNINGIN == false)
+		{
+			if (((level.framecounter.low + 8) & 0x0f) == 0)
+			{
+				playSound((char.state == char.state.TAILS_FLYTIRED) ? 0xbb : 0xba)
+			}
+		}
+	}
+}
+
+//man im so glad i get to fix this stupid bug
+//shoutout to cloud btw for the code
+function bool Character.performSuperTransformation()
+{
+    if (global.xtrachar != 20)
+        return base.Character.performSuperTransformation()
+
+    bool DidHeTransform = base.Character.performSuperTransformation()
+    if (DidHeTransform)
+    {
+        if (super.active.tails == 1)
+            u32[0xffffcbc0] = 0x019156        // Super Sonic star trail for Extra Life
+        else if (super.active.tails == 0xff)
+            u32[0xffffcd7c] = 0x019348
+    }
+    return DidHeTransform
+}
+
+function void yieldExecution()
+{
+	global.xtrachar = 20
+    // if GfxMightyDroppingDown > 0
+    // {
+    //     --GfxMightyDroppingDown
+    // }
+    // if u8[0xffffb000 + 0x0d] & 0x02					// Is Mighty dropping down?
+    // {
+    //     GfxMightyDroppingDown = 2					// Keep this going for 2 frames, just to be sure
+    // }
+	// if GfxMightySmashing > 0
+    // {
+    //     --GfxMightySmashing
+    // }
+	// ESM.yVelocityLastFrame = s16[0xffffb000 + 0x1a] // Store y-speed
+
+	// objIgnoreUpdate()
+
+    base.yieldExecution()
+}
+
+//# address-hook(0x0191a4) end(0x019230)
+function void fn0191a4()
+{
+
+    if (!isMainCharacter(CHARACTER_TAILS) || global.xtrachar != 20)
+    {
+        base.fn0191a4()
+        return
+    }
+
+    if (!super.active.tails || super.active.tails == 0xff)
+    {
+        UnloadObject()
+        return
+    }
+
+#if STANDALONE
+    // Is Extra Life charging a Super Peel-Out right now?
+    if (u8[0xffffb000 + 0x3d] == 0x80)
+    {
+        objA0.position.x.u16 += (s16[0xffffb000 + 0x1c] >> 10) * ((u8[0xffffb000 + 0x2a] & char.flag.FACING_LEFT) ? 1 : -1)
+    }
+#endif
+
+    if (objA0.state != 0)
+    {
+        SuperSonicStars.CreateSparks()
+    }
+
+    if (u8[A0 + 0x34] != 0)
+    {
+        --objA0.animation.timer
+        if (s8(objA0.animation.timer) < 0)
+        {
+            objA0.animation.timer = 1
+            ++objA0.animation.sprite
+            if (objA0.animation.sprite >= 6)
+            {
+                objA0.animation.sprite = 0
+                u8[A0 + 0x34] = 0
+                u8[A0 + 0x35] = 1
+                return
+            }
+        }
+
+        if (u8[A0 + 0x35] == 0)
+        {
+            objA0.position.x.u16 = u16[0xffffb000 + 0x10]
+            objA0.position.y.u16 = u16[0xffffb000 + 0x14]
+        }
+        DrawObject()
+    }
+    else
+    {
+        if (u8[0xffffb000 + 0x2e] == 0 && abs(s16[0xffffb000 + 0x1c]) >= 0x0800)
+        {
+            objA0.animation.sprite = 0
+            u8[A0 + 0x34] = 0x01
+
+            objA0.position.x.u16 = u16[0xffffb000 + 0x10]
+            objA0.position.y.u16 = u16[0xffffb000 + 0x14]
+            DrawObject()
+        }
+        else
+        {
+            u8[A0 + 0x34] = 0
+            u8[A0 + 0x35] = 0
+        }
+    }
+}
+
+// Hyper Stars
+//# address-hook(0x0193ec) end(0x019486)
+function void fn0193ec()
+{
+    if (!isMainCharacter(CHARACTER_TAILS) || global.xtrachar != 20)
+    {
+        base.fn0193ec()
+        return
+    }
+
+
+    if (super.active.tails == 0xff)
+    {
+        --objA0.animation.timer
+        if (s8(objA0.animation.timer) < 0)
+        {
+            objA0.animation.timer = 1
+            ++objA0.animation.sprite
+            if (objA0.animation.sprite >= 3)
+            {
+                objA0.animation.sprite = 0
+                u16[A0 + 0x30] = 0
+                u16[A0 + 0x34] = 0
+            }
+        }
+
+        D0.u8 = objA0.value26
+        objA0.value26 -= 0x10
+        LookupSinCos()
+        D0.s16 <<= 3
+        D1.s16 <<= 3
+        objA0.velocity.x = D0.u16
+        objA0.velocity.y = D1.u16
+        u16[A0 + 0x30] += objA0.velocity.x
+        u16[A0 + 0x34] += objA0.velocity.y
+
+        D2.s16 = s8[A0 + 0x30]
+        if (u8[0xffffb000 + 0x2a] & char.flag.FACING_LEFT)
+            D2.s16 = -D2.s16
+        objA0.position.x.u16 = u16[0xffffb000 + 0x10] + D2.s16
+        objA0.position.y.u16 = u16[0xffffb000 + 0x14] + s8[A0 + 0x34]
+        objA0.sprite_attributes = (objA0.sprite_attributes & ~sprite_attribute.PRIORITY) | (u16[0xffffb000 + 0x0a] & sprite_attribute.PRIORITY)
+
+    #if STANDALONE
+        // Do not render stars if Sonic is outside the screen (e.g. MGZ 2 boss)
+        if (u8[0xffffb000 + 0x04] & render_flag.VISIBLE)
+    #endif
+        {
+            DrawObject()
+        }
+    }
+    else
+    {
+        UnloadObject()
+    }
+}
+
+// Hyper Stars when you break an S monitor
+//# address-hook(0x01da60) end(0x01db26)
+function void ItemEffect.ApplySuperTransformation()
+{
+    base.ItemEffect.ApplySuperTransformation()
+    if (global.xtrachar == 20 && isMainCharacter(CHARACTER_TAILS) && super.active.tails == 0xff)
+        u32[0xffffcd7c] = 0x019348
+}

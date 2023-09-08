@@ -1,0 +1,37 @@
+{
+	"Metadata":
+	{
+		"Name": "Extra Slot Extra Life",
+		"Author": "Sotaknuck, JC_thatone, Michael7, iCloudius",
+		"UniqueID": "ES-EXTRALIFE",
+		"Description": "Sonic's evil Clone Extra Life roams through Angel Island.",
+		"ModVersion": "1.5",
+		"GameVersion": "22.04.26.0"
+	},
+	"Settings":
+	{
+		"Group1":
+		[
+			{
+				"InternalName": "ExtraLifePalette",
+				"DisplayName": "Extra Life's Palette",
+				"Variable": "ExtraLifePalette",
+				"DefaultValue": "0x00",	
+				"Category": "Appearance",			
+				"Options":
+				{
+					"0x00": "Normal",
+					"0x01": "Andrew",
+					"0x02": "Mecha Madness",
+					"0x03": "Groundhog",
+					"0x04": "....?",
+					"0x05": "Pickle",
+					"0x06": "Bits With Pieces",
+					"0x07": "Sonic",
+					"0x08": "Major G",
+					"0x09": "Comic Accurate"
+				}
+			}
+		]
+	}
+}
