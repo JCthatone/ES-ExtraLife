@@ -4,6 +4,5 @@ include wallBreak
 include renderHooks
 include gameplaychange
 include char20
-include 3D2DStars
 include palettes
 include uniquelevels

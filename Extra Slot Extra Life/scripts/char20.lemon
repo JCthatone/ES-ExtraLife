@@ -981,55 +981,6 @@ function bool ExtraChar.checkStartJump_char20()
 	return true
 }
 
-function void SuperThenHyperfunc()
-{
-	if (Mods.isModActive("Characters Go Super Then Hyper") && XtraChar == 20)
-	{ 
-		u8 input_state     = (char.character == CHARACTER_TAILS) ? control.tails.state   : control.player1.state
-		u8 input_pressed   = (char.character == CHARACTER_TAILS) ? control.tails.pressed : control.player1.pressed
-		bool isSuperActive = (char.character == CHARACTER_TAILS) ? super.active.tails    : super.active
-
-		if (char.jumping)
-		{
-			// Limit velocity.y
-			s16 max_vy = (char.flags & char.flag.UNDERWATER) ? -0x801 : -0x801
-			if (char.velocity.y < max_vy)
-			{
-				// Limit vertical velocity while not pressing any jump button
-				//  -> This is important to support low jumps by just tapping the button briefly
-				if ((input_state & CONTROL_ABC) == 0)
-				{
-					char.velocity.y = max_vy
-				}
-			}
-		}
-		else
-		{
-			if (char.double_jump_state == 0)
-			{
-				#if STANDALONE
-					if (Input.buttonPressed(BUTTON_Y) && !System.getGlobalVariableValueByName("original_mode"))
-					{
-						if ((super.active == 0xff || super.active.tails == 0xff) == 0 && char.invuln.countdown == 0)	// Check invulnerability to prevent spamming of super activate + cancel
-						{
-							if (global.chaos_emeralds >= 7 && global.traded_emeralds == 0 && (super.active == 1 || super.active.tails == 1))
-							{
-								char.jumping = 0
-								return
-							}
-							if (Character.performSuperTransformation())
-							{
-								char.jumping = 0
-								return
-							}
-						}
-					}
-				#endif
-			}
-		}
-	}
-}
-
 function s32 ESS_saveBoxGetColor_Es(u8 ES_val)
 {
 	if (ES_val == 20)
@@ -1048,28 +999,18 @@ function string getESCharacterFallSpriteKey(u8 character, u8 extrachar)
 
 function u32 getCharacterColorsForControllerLEDs(u8 character)
 {
-	return (character == CHARACTER_SONIC && global.xtrachar == 3 && levelselect.characters != 0) ? 0x4848B4 : base.getCharacterColorsForControllerLEDs(character)
+	return (character == CHARACTER_TAILS && global.xtrachar == 20 && levelselect.characters != 0) ? 0x4848B4 : base.getCharacterColorsForControllerLEDs(character)
 }
 
 //# address-hook(0x01a170) end(0x01a198)
 function void fn01a170()
 {
-	//fuck them birds
     if (global.xtrachar != 20)
     {
         base.fn01a170()
         return
     }
-}
-
-function u32 Game.getSetting(u32 settingId)
-{
-    if (global.xtrachar == 20)
-    {
-        if (settingId == SETTING_HYPER_TAILS)
-            return 2
-    }
-    return base.Game.getSetting(settingId)
+	//nuh uh to the birds
 }
 
 //Results name fix
@@ -1108,4 +1049,64 @@ function void LevelResults.UpdateCharacterNameDisplay()
         return
 	}
 	base.LevelResults.UpdateCharacterNameDisplay()
+}
+
+function void SuperThenHyperfunc()
+{
+	if (global.xtrachar != 20)
+	{
+		base.SuperThenHyperfunc()
+		return
+	}
+
+	u8 input_state     = control.tails.state
+	u8 input_pressed   = control.tails.pressed
+	bool isSuperActive = super.active.tails
+
+	if (char.jumping)
+	{
+		// Limit velocity.y
+		s16 max_vy = (char.flags & char.flag.UNDERWATER) ? -0x801 : -0x801
+		if (char.velocity.y < max_vy)
+		{
+			// Limit vertical velocity while not pressing any jump button
+			//  -> This is important to support low jumps by just tapping the button briefly
+			if ((input_state & CONTROL_ABC) == 0)
+			{
+				char.velocity.y = max_vy
+			}
+		}
+		else
+		{
+			if (char.double_jump_state == 0)
+			{
+				#if STANDALONE
+					if (Input.buttonPressed(BUTTON_Y) && !System.getGlobalVariableValueByName("original_mode"))
+					{
+						if ((super.active == 0xff || super.active.tails == 0xff) == 0 && char.invuln.countdown == 0)	// Check invulnerability to prevent spamming of super activate + cancel
+						{
+							if (global.chaos_emeralds >= 7 && global.traded_emeralds == 0 && (super.active == 1 || super.active.tails == 1))
+							{
+								char.jumping = 0
+								return
+							}
+							if (Character.performSuperTransformation())
+							{
+								char.jumping = 0
+								return
+							}
+						}
+					}
+				#endif
+			}
+		}
+	}
+}
+
+function u64 GetXtraName(u8 xtrachar, u8 char)
+{
+	if (xtrachar == 20 && char == CHARACTER_TAILS)
+		return "ExtraLife"
+
+	return base.GetXtraName(xtrachar, char)
 }

@@ -537,7 +537,7 @@ function void fn05ea74()
 //# address-hook(0x05e412) end(0x05e456)
 function void fn05e412()
 {
-	if (!isMainCharacter(CHARACTER_TAILS))
+	if (global.xtrachar != 20)
 	{
 		base.fn05e412()
 		return
@@ -568,7 +568,7 @@ function void fn05e412()
 //# address-hook(0x05e4e2) end(0x05e4fe)
 function void fn05e4e2()
 {
-	if (!isMainCharacter(CHARACTER_TAILS))
+	if (global.xtrachar != 20)
 	{
 		base.fn05e4e2()
 		return
@@ -588,63 +588,11 @@ function void fn05e4e2()
 	}
 }
 
-// Super transformation
-
-//# address-hook(0x08648c) end(0x08653e)
-function void fn08648c()
-{
-	if (!isMainCharacter(CHARACTER_TAILS))
-	{
-		base.fn08648c()
-		return
-	}
-	ring_counter += 50
-	super.palettefx.state = 1
-	super.palettefx.timer = 0x0f
-	super.active = 1
-	super.ring_dec.frames = 60
-	global.move.speedcap = 0x800
-	global.move.acceleration = 0x18
-	global.move.deceleration = 0xc0
-	u8[0xffffb020] = 0x1f
-
-	if (global.characters == CHARS_TAILS_ALONE)
-	{
-		super.active = 0
-		super.active.tails = 0x01
-		u8[0xffffb020] = 0x29
-		u16[0xfffffec0] = 0x800
-		u16[0xfffffec2] = 0x18
-		u16[0xfffffec4] = 0xc0
-		u32[0xffffcd7c] = 0x01a170
-	}
-	else if (global.characters != CHARS_TAILS_ALONE) //!= instead of <
-	{
-		u32[0xffffb00c] = 0x146816
-		super.active = 0xff
-	#if STANDALONE
-		super.active = (global.super_emeralds == 7) ? 0xff : 0x01
-	#endif
-		global.move.speedcap = 0xa00
-		global.move.acceleration = 0x30
-		global.move.deceleration = 0x100
-		u32[0xffffcd7c] = 0x019348
-	}
-	else
-	{
-		u32[0xffffcbc0] = 0x01a494
-	}
-
-	u8[0xffffb02b] |= 0x02
-	u8[0xffffb02e] = 0x81
-	u8[0xffffb035] = 0
-}
-
 //there is a character check here...let's force tails
 //# address-hook(0x05fefe) end(0x05ff1a)
 function void fn05fefe()
 {
-	if (!isMainCharacter(CHARACTER_TAILS))
+	if (global.xtrachar != 20)
 	{
 		base.fn05fefe()
 		return
@@ -659,7 +607,7 @@ function void fn05fefe()
 //# address-hook(0x05ef68) end(0x05efb4)
 function void fn05ef68()
 {
-	if (!isMainCharacter(CHARACTER_TAILS))
+	if (global.xtrachar != 20)
 	{
 		base.fn05ef68()
 		return
@@ -692,8 +640,7 @@ function void fn05ef68()
 
 function void TriggerNextZone()
 {
-  
-	if (XtraChar != 20)
+	if (global.xtrachar != 20)
 	{
 		base.TriggerNextZone()
 		return

@@ -131,28 +131,6 @@ function bool Standalone.onWriteToSpriteTable(s16 px, s16 py, u16 renderQueue)
 	// 		objA0.animation.sprite = 0
 	// 	}	
 	// }
-	
-		if (objA0.update_address == 0x20008e)
-		{
-			push(A1)
-			A1 = 0xffffb000						
-			//update the render flags with the player's
-			//so the stars are always correct and go behind waterfalls//effects etc
-			objA0.render_flags = objA1.render_flags
-			objA0.sprite_priority = objA1.sprite_priority
-			objA0.sprite_attributes = objA1.sprite_attributes			
-			//restore A1
-			A1 = pop()
-			renderQueue = 0xa000 - objA0.sprite_priority +1 //just give it a priority higher than the player
-			prioFlag = (objA0.sprite_attributes & sprite_attribute.PRIORITY) != 0
-			//this just has to render the proper frame based on its sprite value
-			u64 key = stringformat("spark_0x%02x", objA0.animation.sprite)
-			//System.writeDisplayLine(stringformat("sprite: %02x", renderQueue))		
-			//as always we're in register A0 so we can read from "char."		
-			//render the stars not on px and py but offset them by rotation
-			Renderer.drawCustomSprite(key, px + objA0.velocity.x , py + objA0.velocity.y, 0x00, prioFlag ? SPRITE_FLAG_PRIO : 0, renderQueue, 0, 255)//0 is the angle				
-			return true				
-		}
 	}
 
     return base.Standalone.onWriteToSpriteTable(px, py, renderQueue)
@@ -475,16 +453,4 @@ function void SpecialStage()
 		if (global.demo_countdown == 0)
 			break
 	}
-}
-
-//MAIN MENU RENDER PREVENTION
---------------------
-//OVERLOAD SPRITE DIRECT ENTRIES (or they are drawn ANYWAY)
-function void Standalone.drawCharacterSpriteDirect(u8 character, s16 px, s16 py, u16 animationSpriteEx, u8 flags, u8 atex, u16 renderQueue)
-{
-	if (global.game_mode == 0x4c && character == 1)
-	{
-		return
-	}
-	base.Standalone.drawCharacterSpriteDirect(character, px, py, animationSpriteEx, flags,  atex, renderQueue)
 }

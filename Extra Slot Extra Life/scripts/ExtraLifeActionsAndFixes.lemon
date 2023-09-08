@@ -19,7 +19,7 @@ function void Character.updateJumpMoves()
 	//NEED TO CALL FOR TAILS IN MGZ AND THE INTROS?
 
 	//only extraLife, thanks!
-	if (XtraChar != 20)
+	if (global.xtrachar != 20)
 	{
 		base.Character.updateJumpMoves()
 		return
@@ -47,14 +47,41 @@ function void Character.updateJumpMoves()
 			if (char.double_jump_state == 0)
 			{
 				#if STANDALONE
-					if (buttonPressed(BUTTON_Y))
+					if (Input.buttonPressed(BUTTON_Y) && !System.getGlobalVariableValueByName("original_mode"))
 					{
-						if (!isSuperActive && char.invuln.countdown == 0)	// Check invulnerability to prevent spamming of super activate + cancel
+						if (Mods.isModActive("Characters Go Super Then Hyper"))
 						{
-							if (Character.performSuperTransformation())
-								return
+							if ((super.active == 0xff || super.active.tails == 0xff) == 0 && char.invuln.countdown == 0)	// Check invulnerability to prevent spamming of super activate + cancel
+							{
+								if (global.chaos_emeralds >= 7 && global.traded_emeralds == 0 && (super.active == 1 || super.active.tails == 1))
+								{
+									char.jumping = 0
+									return
+								}
+								if (Character.performSuperTransformation())
+								{
+									char.jumping = 0
+									return
+								}
+							}
+						}
+						else
+						{
+							if (!isSuperActive && char.invuln.countdown == 0)	// Check invulnerability to prevent spamming of super activate + cancel
+							{
+								if (Character.performSuperTransformation())
+									return
+							}
 						}
 					}
+					// if Input.buttonPressed(BUTTON_Y)
+					// {
+					// 	if (!isSuperActive && char.invuln.countdown == 0)	// Check invulnerability to prevent spamming of super activate + cancel
+					// 	{
+					// 		if (Character.performSuperTransformation())
+					// 			return
+					// 	}
+					// }
 				#endif
             
 				// Check if pressed jump again in mid-air
@@ -63,7 +90,7 @@ function void Character.updateJumpMoves()
 					//EXTRA LIFE HAS A DIRECTIONAL - MID AIR LIKE drop dash
 					//SLOWDOWN GRAVITY WHEN BUTTON HELD?
 					//FIRST CHECK: AI OR PLAYER?
-					if (tails.control_counter > 0|| XtraChar == 20) // player
+					if (tails.control_counter > 0|| global.xtrachar == 20) // player
 					{
 						char.double_jump_state = 1							
 					}
@@ -238,7 +265,7 @@ function void ExtraLifePressedJumpInMidAir()
 //# address-hook(0x0137c4) end(0x0138f4)
 function void Character.UpdateNormalState.Tails()
 {
-	if (XtraChar != 20)
+	if (global.xtrachar != 20)
 	{
 		base.Character.UpdateNormalState.Tails()
 		return
@@ -362,7 +389,7 @@ function void Character.UpdateNormalState.Tails()
 
 function void Character.updateUprightOnGround() //Extra Life can peelout
 {
-	if (XtraChar != 20)
+	if (global.xtrachar != 20)
 	{
 		base.Character.updateUprightOnGround()
 		return
@@ -376,7 +403,7 @@ function void Character.updateUprightOnGround() //Extra Life can peelout
 
 #if STANDALONE
 
-	if ((XtraChar == 20) && Game.getSetting(SETTING_SUPER_PEELOUT))
+	if ((global.xtrachar == 20) && Game.getSetting(SETTING_SUPER_PEELOUT))
 	{
 		if (Character.updateSuperPeelout())
 			return
@@ -465,7 +492,7 @@ function void Character.OnThreatCollision()
 function void Character.GettingHurt()
 {
 	
-	if (XtraChar != 20)
+	if (global.xtrachar != 20)
 	{
 		base.Character.GettingHurt()
 		return
@@ -573,7 +600,7 @@ function void Character.GettingHurt()
 // ExtraLife has larger hitbox
 function void Character.Initialization.shared(u8 character)
 {
-	if (XtraChar != 20)
+	if (global.xtrachar != 20)
 	{
 		base.Character.Initialization.shared(character)
 		return
@@ -686,7 +713,7 @@ function void Character.Initialization.shared(u8 character)
 //Every time the form isn't Tails
 function void releaseSpindash()
 {
-	if (XtraChar != 20)
+	if (global.xtrachar != 20)
 	{
 		base.releaseSpindash()
 		return
@@ -747,11 +774,11 @@ function void releaseSpindash()
 //# address-hook(0x018c20) end(0x018c82)
 function void fn018c20()
 {
-if (char.character != CHARACTER_TAILS)
-{
-	base.fn018c20()
-	return
-}
+	if (global.xtrachar != 20)
+	{
+		base.fn018c20()
+		return
+	}
 
 	// The first check is against "sonic.drown_countdown"
 	//  -> Deactivate this while the drown countdown is shown, because the digits use the same VRAM as this effect here
@@ -952,7 +979,7 @@ function void fn044a26()
 //# address-hook(0x07e44c) end(0x07e4a0)
 function void fn07e44c()
 {
-	if (u8[0xffffb038] != CHARACTER_TAILS)
+	if (global.xtrachar != 20)
 	{
 		base.fn07e44c()
 		return
@@ -989,7 +1016,7 @@ function void fn07e44c()
 //# address-hook(0x07fe06) end(0x07fe2a)
 function void fn07fe06()
 {
-	if (u8[A1 + 0x38] != CHARACTER_TAILS)
+	if (global.xtrachar != 20)
 	{
 		base.fn07fe06()
 		return
@@ -1189,4 +1216,159 @@ function void UpdateTailsFlight_innerB()
 			}
 		}
 	}
+}
+
+//man im so glad i get to fix this stupid bug
+//shoutout to cloud btw for the code
+function bool Character.performSuperTransformation()
+{
+    if (global.xtrachar != 20)
+        return base.Character.performSuperTransformation()
+
+    bool DidHeTransform = base.Character.performSuperTransformation()
+    if (DidHeTransform)
+    {
+        if (super.active.tails == 1)
+            u32[0xffffcbc0] = 0x019156        // Super Sonic star trail for Extra Life
+        else if (super.active.tails == 0xff)
+            u32[0xffffcd7c] = 0x019348
+    }
+    return DidHeTransform
+}
+
+//# address-hook(0x0191a4) end(0x019230)
+function void fn0191a4()
+{
+
+    if (!isMainCharacter(CHARACTER_TAILS) || global.xtrachar != 20)
+    {
+        base.fn0191a4()
+        return
+    }
+
+    if (!super.active.tails || super.active.tails == 0xff)
+    {
+        UnloadObject()
+        return
+    }
+
+#if STANDALONE
+    // Is Extra Life charging a Super Peel-Out right now?
+    if (u8[0xffffb000 + 0x3d] == 0x80)
+    {
+        objA0.position.x.u16 += (s16[0xffffb000 + 0x1c] >> 10) * ((u8[0xffffb000 + 0x2a] & char.flag.FACING_LEFT) ? 1 : -1)
+    }
+#endif
+
+    if (objA0.state != 0)
+    {
+        SuperSonicStars.CreateSparks()
+    }
+
+    if (u8[A0 + 0x34] != 0)
+    {
+        --objA0.animation.timer
+        if (s8(objA0.animation.timer) < 0)
+        {
+            objA0.animation.timer = 1
+            ++objA0.animation.sprite
+            if (objA0.animation.sprite >= 6)
+            {
+                objA0.animation.sprite = 0
+                u8[A0 + 0x34] = 0
+                u8[A0 + 0x35] = 1
+                return
+            }
+        }
+
+        if (u8[A0 + 0x35] == 0)
+        {
+            objA0.position.x.u16 = u16[0xffffb000 + 0x10]
+            objA0.position.y.u16 = u16[0xffffb000 + 0x14]
+        }
+        DrawObject()
+    }
+    else
+    {
+        if (u8[0xffffb000 + 0x2e] == 0 && abs(s16[0xffffb000 + 0x1c]) >= 0x0800)
+        {
+            objA0.animation.sprite = 0
+            u8[A0 + 0x34] = 0x01
+
+            objA0.position.x.u16 = u16[0xffffb000 + 0x10]
+            objA0.position.y.u16 = u16[0xffffb000 + 0x14]
+            DrawObject()
+        }
+        else
+        {
+            u8[A0 + 0x34] = 0
+            u8[A0 + 0x35] = 0
+        }
+    }
+}
+
+// Hyper Stars
+//# address-hook(0x0193ec) end(0x019486)
+function void fn0193ec()
+{
+    if (!isMainCharacter(CHARACTER_TAILS) || global.xtrachar != 20)
+    {
+        base.fn0193ec()
+        return
+    }
+
+
+    if (super.active.tails == 0xff)
+    {
+        --objA0.animation.timer
+        if (s8(objA0.animation.timer) < 0)
+        {
+            objA0.animation.timer = 1
+            ++objA0.animation.sprite
+            if (objA0.animation.sprite >= 3)
+            {
+                objA0.animation.sprite = 0
+                u16[A0 + 0x30] = 0
+                u16[A0 + 0x34] = 0
+            }
+        }
+
+        D0.u8 = objA0.value26
+        objA0.value26 -= 0x10
+        LookupSinCos()
+        D0.s16 <<= 3
+        D1.s16 <<= 3
+        objA0.velocity.x = D0.u16
+        objA0.velocity.y = D1.u16
+        u16[A0 + 0x30] += objA0.velocity.x
+        u16[A0 + 0x34] += objA0.velocity.y
+
+        D2.s16 = s8[A0 + 0x30]
+        if (u8[0xffffb000 + 0x2a] & char.flag.FACING_LEFT)
+            D2.s16 = -D2.s16
+        objA0.position.x.u16 = u16[0xffffb000 + 0x10] + D2.s16
+        objA0.position.y.u16 = u16[0xffffb000 + 0x14] + s8[A0 + 0x34]
+        objA0.sprite_attributes = (objA0.sprite_attributes & ~sprite_attribute.PRIORITY) | (u16[0xffffb000 + 0x0a] & sprite_attribute.PRIORITY)
+
+    #if STANDALONE
+        // Do not render stars if Sonic is outside the screen (e.g. MGZ 2 boss)
+        if (u8[0xffffb000 + 0x04] & render_flag.VISIBLE)
+    #endif
+        {
+            DrawObject()
+        }
+    }
+    else
+    {
+        UnloadObject()
+    }
+}
+
+// Hyper Stars when you break an S monitor
+//# address-hook(0x01da60) end(0x01db26)
+function void ItemEffect.ApplySuperTransformation()
+{
+    base.ItemEffect.ApplySuperTransformation()
+    if (global.xtrachar == 20 && isMainCharacter(CHARACTER_TAILS) && super.active.tails == 0xff)
+        u32[0xffffcd7c] = 0x019348
 }

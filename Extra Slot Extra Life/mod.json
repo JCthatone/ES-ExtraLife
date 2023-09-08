@@ -5,7 +5,7 @@
 		"Author": "Sotaknuck, JC_thatone, Michael7, iCloudius",
 		"UniqueID": "ES-EXTRALIFE",
 		"Description": "Sonic's evil Clone Extra Life roams through Angel Island.",
-		"ModVersion": "1.0",
+		"ModVersion": "1.5",
 		"GameVersion": "22.04.26.0"
 	},
 	"Settings":
@@ -28,7 +28,8 @@
 					"0x05": "Pickle",
 					"0x06": "Bits With Pieces",
 					"0x07": "Sonic",
-					"0x08": "Major G"
+					"0x08": "Major G",
+					"0x09": "Comic Accurate"
 				}
 			}
 		]

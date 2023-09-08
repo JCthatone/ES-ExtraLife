@@ -1,5 +1,8 @@
 {
 	"mgz2_char20_layout":	{ "File": "MGZ/Layout/2.bin" },
 	"mgz2_char20_objects":	{ "File": "MGZ/Object pos/2.bin" },
-	"mgz2_char20_rings":		{ "File": "MGZ/Rings/2.bin" }
+	"mgz2_char20_rings":	{ "File": "MGZ/Rings/2.bin" },
+	"cnz1_char20_objects":	{ "File": "CNZ/Object pos/1.bin" },
+	"cnz2_char20_layout":	{ "File": "CNZ/Layout/2.bin" },
+	"cnz2_char20_objects":	{ "File": "CNZ/Object pos/2.bin" }
 }
